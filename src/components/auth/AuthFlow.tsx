@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { Check, ArrowLeft, ShieldCheck, Mail, Lock, User, Phone } from 'lucide-react';
+import { Check, ArrowLeft, ShieldCheck, Mail, Lock, User, Phone, Users, Wallet, TrendingUp } from 'lucide-react';
 import { Logo } from '../common/Logo';
 
 type Step = 'intro' | 'welcome' | 'create' | 'login' | 'bvn' | 'success';
@@ -95,49 +95,91 @@ export function AuthFlow({ onComplete }: { onComplete: () => void }) {
                 transition={{ duration: 0.4 }}
                 className="flex flex-col h-full bg-white relative z-0"
               >
-                <div className="pt-12 pb-6 px-6 w-full flex flex-col items-center">
-                  <motion.div layoutId="logo-container" className="mb-4 bg-white p-3 rounded-2xl shadow-sm border border-slate-100">
-                    <Logo className="w-12 h-12" />
+                <div className="pt-8 pb-4 px-6 w-full flex flex-col items-center">
+                  <motion.div layoutId="logo-container" className="mb-4 bg-white p-2.5 rounded-2xl shadow-sm border border-slate-100 z-10 relative">
+                    <Logo className="w-10 h-10" />
                   </motion.div>
                   <motion.h1 
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.2 }}
-                    className="text-2xl font-bold tracking-tight text-slate-900 mb-2"
+                    className="text-2xl font-bold tracking-tight text-slate-900 mb-1"
                   >
                     Welcome to KoloPay
                   </motion.h1>
-                  <motion.p 
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.3 }}
-                    className="text-slate-500 text-sm max-w-[260px] text-center"
-                  >
-                    The smart way to save and grow together.
-                  </motion.p>
                 </div>
                 
-                <div className="flex-1 w-full relative flex items-center justify-center">
-                  {/* Flat minimalist illustration to replace blurry shapes */}
-                  <motion.div 
-                    initial={{ opacity: 0, scale: 0.9 }}
+                <div className="flex-1 w-full relative flex flex-col items-center justify-center px-6">
+                  {/* Live Character Output */}
+                  <motion.div
+                    initial={{ opacity: 0, scale: 0.8 }}
                     animate={{ opacity: 1, scale: 1 }}
-                    transition={{ delay: 0.4, duration: 0.5 }}
-                    className="relative w-64 h-56 flex items-end justify-center pb-4"
+                    transition={{ delay: 0.3, type: "spring" }}
                   >
-                    {/* Background Arc */}
-                    <div className="absolute inset-0 bg-[#0052FF]/5 rounded-t-full border-t border-x border-[#0052FF]/10" />
+                    <motion.div 
+                      animate={{ y: [0, -12, 0] }}
+                      transition={{ repeat: Infinity, duration: 2.5, ease: "easeInOut" }}
+                      className="relative w-28 h-28 bg-gradient-to-tr from-[#0052FF] to-blue-400 rounded-3xl shadow-xl shadow-blue-500/30 flex items-center justify-center border-b-[6px] border-blue-600 mb-8 z-10"
+                    >
+                       {/* Drop Shadow */}
+                       <div className="absolute -bottom-8 w-20 h-4 bg-slate-200 rounded-full blur-[2px]" />
+                       
+                       {/* Eyes */}
+                       <div className="flex gap-4 absolute top-8">
+                          <motion.div
+                            animate={{ scaleY: [1, 1, 0.1, 1, 1] }}
+                            transition={{ repeat: Infinity, duration: 4, times: [0, 0.45, 0.5, 0.55, 1] }}
+                            className="w-4 h-6 bg-white rounded-full"
+                          />
+                          <motion.div
+                            animate={{ scaleY: [1, 1, 0.1, 1, 1] }}
+                            transition={{ repeat: Infinity, duration: 4, times: [0, 0.45, 0.5, 0.55, 1] }}
+                            className="w-4 h-6 bg-white rounded-full"
+                          />
+                       </div>
+                       {/* Cheeks */}
+                       <div className="absolute top-12 -left-2 w-4 h-3 bg-pink-400/50 rounded-full blur-[2px]" />
+                       <div className="absolute top-12 -right-2 w-4 h-3 bg-pink-400/50 rounded-full blur-[2px]" />
+                       
+                       {/* Coin slot */}
+                       <div className="absolute top-0 w-10 h-1.5 bg-black/20 rounded-full" />
+                    </motion.div>
+                  </motion.div>
+
+                  {/* Features */}
+                  <motion.div 
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.4 }}
+                    className="w-full space-y-4 max-w-[280px]"
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className="w-8 h-8 rounded-full bg-blue-50 text-[#0052FF] flex items-center justify-center shrink-0">
+                        <ShieldCheck size={16} />
+                      </div>
+                      <div>
+                        <h3 className="text-sm font-semibold text-slate-900 leading-none mb-1">Secure Ajo Savings</h3>
+                        <p className="text-[11px] text-slate-500 leading-tight">Your funds are safe and protected.</p>
+                      </div>
+                    </div>
                     
-                    {/* Abstract Users/Community */}
-                    <div className="flex items-end gap-2 z-10 relative">
-                      <div className="w-12 h-20 bg-blue-100 rounded-t-full flex flex-col items-center justify-start py-3 drop-shadow-sm border border-white">
-                        <div className="w-5 h-5 rounded-full bg-blue-200" />
+                    <div className="flex items-center gap-3">
+                      <div className="w-8 h-8 rounded-full bg-emerald-50 text-emerald-500 flex items-center justify-center shrink-0">
+                        <Users size={16} />
                       </div>
-                      <div className="w-16 h-28 bg-[#0052FF] rounded-t-full flex flex-col items-center justify-start py-4 drop-shadow-lg border-2 border-white z-20">
-                        <div className="w-7 h-7 rounded-full bg-white/20" />
+                      <div>
+                        <h3 className="text-sm font-semibold text-slate-900 leading-none mb-1">Group Management</h3>
+                        <p className="text-[11px] text-slate-500 leading-tight">Track members and automatic payouts.</p>
                       </div>
-                      <div className="w-12 h-24 bg-orange-100 rounded-t-full flex flex-col items-center justify-start py-3 drop-shadow-sm border border-white">
-                        <div className="w-5 h-5 rounded-full bg-orange-200" />
+                    </div>
+
+                    <div className="flex items-center gap-3">
+                      <div className="w-8 h-8 rounded-full bg-amber-50 text-amber-500 flex items-center justify-center shrink-0">
+                        <TrendingUp size={16} />
+                      </div>
+                      <div>
+                        <h3 className="text-sm font-semibold text-slate-900 leading-none mb-1">Build Trust & Grow</h3>
+                        <p className="text-[11px] text-slate-500 leading-tight">Increase your trust score over time.</p>
                       </div>
                     </div>
                   </motion.div>
@@ -147,19 +189,19 @@ export function AuthFlow({ onComplete }: { onComplete: () => void }) {
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.5 }}
-                  className="w-full px-6 pb-8 pt-6 relative bg-white"
+                  className="w-full px-6 pb-8 pt-6 relative bg-white mt-auto"
                 >
                   <button 
-                    onClick={() => setStep('create')}
-                    className="w-full bg-[#0052FF] text-white font-semibold py-4 rounded-2xl mb-3 hover:bg-blue-700 transition-colors shadow-sm"
+                    onClick={() => setStep('login')}
+                    className="w-full bg-[#0052FF] text-white font-semibold py-4 rounded-2xl mb-3 hover:bg-blue-700 transition-colors shadow-lg shadow-blue-500/20"
                   >
-                    Sign Up
+                    Sign In
                   </button>
                   <button 
-                    onClick={() => setStep('login')}
+                    onClick={() => setStep('create')}
                     className="w-full bg-slate-50 text-slate-800 font-semibold py-4 rounded-2xl border border-slate-200 hover:bg-slate-100 transition-colors"
                   >
-                    Log In
+                    Sign Up
                   </button>
                 </motion.div>
               </motion.div>
@@ -206,7 +248,7 @@ export function AuthFlow({ onComplete }: { onComplete: () => void }) {
                 <motion.button 
                   whileTap={{ scale: 0.98 }}
                   onClick={() => setStep('bvn')}
-                  className="w-full bg-[#0052FF] text-white font-semibold py-4 rounded-2xl mt-6 shadow-sm hover:bg-blue-700"
+                  className="w-full bg-[#0052FF] text-white font-semibold py-4 rounded-2xl mt-auto pt-4 shadow-sm hover:bg-blue-700 transition-all"
                 >
                   Continue
                 </motion.button>
@@ -244,7 +286,7 @@ export function AuthFlow({ onComplete }: { onComplete: () => void }) {
                 <motion.button 
                   whileTap={{ scale: 0.98 }}
                   onClick={onComplete}
-                  className="w-full bg-[#0052FF] text-white font-semibold py-4 rounded-2xl mt-6 shadow-sm hover:bg-blue-700"
+                  className="w-full bg-[#0052FF] text-white font-semibold py-4 rounded-2xl mt-auto shadow-sm hover:bg-blue-700"
                 >
                   Log In
                 </motion.button>
@@ -286,7 +328,7 @@ export function AuthFlow({ onComplete }: { onComplete: () => void }) {
                 <motion.button 
                   whileTap={{ scale: 0.98 }}
                   onClick={() => setStep('success')}
-                  className="w-full bg-[#0052FF] text-white font-semibold py-4 rounded-2xl mt-6 shadow-sm hover:bg-blue-700"
+                  className="w-full bg-[#0052FF] text-white font-semibold py-4 rounded-2xl mt-auto shadow-sm hover:bg-blue-700"
                 >
                   Verify BVN
                 </motion.button>
