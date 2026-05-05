@@ -83,7 +83,7 @@ export function AuthFlow({ onComplete }: { onComplete: () => void }) {
         )}
 
         {/* Content area */}
-        <div className={`flex-1 flex flex-col relative overflow-hidden ${step === 'welcome' ? '' : 'px-6 pb-8'}`}>
+        <div className={`flex-1 flex flex-col relative overflow-y-auto hide-scrollbar ${step === 'welcome' ? '' : 'px-6 pb-8'}`}>
           <AnimatePresence mode="wait">
             
             {step === 'welcome' && (
@@ -172,7 +172,7 @@ export function AuthFlow({ onComplete }: { onComplete: () => void }) {
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, x: -20 }}
                 transition={{ duration: 0.3 }}
-                className="flex-1 flex flex-col absolute inset-0 px-6 pb-8 top-[80px] bg-white relative z-0"
+                className="flex-1 flex flex-col bg-white"
               >
                 <div className="mb-6">
                   <h1 className="text-2xl font-bold tracking-tight text-slate-900 mb-1.5">Create Account</h1>
@@ -220,7 +220,7 @@ export function AuthFlow({ onComplete }: { onComplete: () => void }) {
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, x: -20 }}
                 transition={{ duration: 0.3 }}
-                className="flex-1 flex flex-col absolute inset-0 px-6 pb-8 top-[80px] bg-white relative z-0"
+                className="flex-1 flex flex-col bg-white"
               >
                 <div className="mb-8">
                   <h1 className="text-2xl font-bold tracking-tight text-slate-900 mb-1.5">Welcome Back</h1>
@@ -258,7 +258,7 @@ export function AuthFlow({ onComplete }: { onComplete: () => void }) {
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, x: -20 }}
                 transition={{ duration: 0.3 }}
-                className="flex flex-col flex-1 absolute inset-0 px-6 pb-8 top-[80px] bg-white relative z-0"
+                className="flex flex-col flex-1 bg-white"
               >
                 <div className="mb-8 text-center pt-2">
                   <h1 className="text-2xl font-bold tracking-tight text-slate-900 mb-2">Verify Your Identity</h1>
@@ -299,7 +299,7 @@ export function AuthFlow({ onComplete }: { onComplete: () => void }) {
                 initial={{ opacity: 0, scale: 0.95 }}
                 animate={{ opacity: 1, scale: 1 }}
                 transition={{ duration: 0.4 }}
-                className="flex flex-col items-center justify-center flex-1 text-center py-12 absolute inset-0 px-6 pb-8 top-0 bg-white relative z-0"
+                className="flex flex-col items-center justify-center flex-1 text-center py-12 bg-white"
               >
                 <div className="mb-12 mt-12">
                   <h1 className="text-3xl font-bold text-slate-900 tracking-tight">Success!</h1>
