@@ -19,7 +19,7 @@ export function Layout({ children }: LayoutProps) {
           <div className="p-6 pb-2">
             <div className="flex items-center gap-2">
               <Logo className="w-8 h-8" />
-              <h1 className="font-bold text-xl tracking-tight text-[#0052FF]">AjoSmart</h1>
+              <h1 className="font-bold text-xl tracking-tight text-[#0052FF]">KoloPay</h1>
             </div>
             <p className="text-xs font-medium text-slate-500 mt-2 uppercase tracking-wider pl-[40px]">Dashboard</p>
           </div>

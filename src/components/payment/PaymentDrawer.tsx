@@ -87,7 +87,7 @@ export function PaymentDrawer() {
                 <Wallet size={20} />
               </div>
               <div className="text-left flex-1">
-                <h4 className="font-semibold text-slate-900 text-sm">AjoSmart Wallet</h4>
+                <h4 className="font-semibold text-slate-900 text-sm">KoloPay Wallet</h4>
                 <p className="text-xs text-slate-500 mt-0.5">Use your available balance</p>
               </div>
             </motion.button>

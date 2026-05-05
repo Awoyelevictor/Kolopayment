@@ -105,7 +105,7 @@ export function AuthFlow({ onComplete }: { onComplete: () => void }) {
                     transition={{ delay: 0.2 }}
                     className="text-2xl font-bold tracking-tight text-slate-900 mb-2"
                   >
-                    Welcome to AjoSmart
+                    Welcome to KoloPay
                   </motion.h1>
                   <motion.p 
                     initial={{ opacity: 0, y: 10 }}

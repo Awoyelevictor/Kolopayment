@@ -11,7 +11,7 @@ export function ProfileSettings() {
     { id: 'security', icon: <Shield size={20} />, label: 'Security', action: () => navigate('security') },
     { id: 'notifications', icon: <Bell size={20} />, label: 'Notifications', action: () => navigate('notifications') },
     { id: 'help', icon: <HelpCircle size={20} />, label: 'Help & Support' },
-    { id: 'about', icon: <Info size={20} />, label: 'About AjoSmart' },
+    { id: 'about', icon: <Info size={20} />, label: 'About KoloPay' },
   ];
 
   return (
