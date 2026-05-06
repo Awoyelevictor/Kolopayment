@@ -12,10 +12,10 @@ export function Layout({ children }: LayoutProps) {
   const showNav = ['home', 'groups', 'profile', 'payment'].includes(currentRoute);
 
   return (
-    <div className="min-h-screen bg-[#F8FAFC] flex flex-col xl:flex-row xl:justify-center">
+    <div className="min-h-screen bg-gradient-to-br from-[#F0F5FF] via-[#DBEAFE] to-[#F8FAFC] flex flex-col xl:flex-row xl:justify-center">
       {/* Desktop Sidebar */}
       {showNav && (
-        <div className="hidden xl:flex w-64 flex-col border-r border-slate-200 bg-white h-screen sticky top-0">
+        <div className="hidden xl:flex w-64 flex-col border-r border-white/40 bg-white/30 backdrop-blur-xl h-screen sticky top-0">
           <div className="p-6 pb-2">
             <div className="flex items-center gap-2">
               <Logo className="w-8 h-8" />
@@ -28,13 +28,13 @@ export function Layout({ children }: LayoutProps) {
       )}
 
       {/* Main Content */}
-      <main className="flex-1 w-full max-w-[1200px] xl:max-w-[800px] 2xl:max-w-[1000px] mx-auto pb-24 xl:pb-0 min-h-screen bg-[#F8FAFC]">
+      <main className="flex-1 w-full max-w-[1200px] xl:max-w-[800px] 2xl:max-w-[1000px] mx-auto pb-24 xl:pb-0 min-h-screen">
         {children}
       </main>
 
       {/* Mobile Bottom Nav */}
       {showNav && (
-        <div className="xl:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 z-50 pb-safe">
+        <div className="xl:hidden fixed bottom-0 left-0 right-0 bg-white/60 backdrop-blur-xl border-t border-white/40 z-50 pb-safe shadow-[0_-4px_24px_-8px_rgba(0,82,255,0.08)]">
           <ResponsiveNav isDesktop={false} />
         </div>
       )}

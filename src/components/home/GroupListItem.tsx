@@ -18,10 +18,9 @@ export function GroupListItem({ name, amount, frequency, membersCount, maxMember
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: index * 0.1 }}
-      className="bg-white p-4 rounded-2xl border border-slate-100 shadow-sm flex items-start gap-4 mb-3"
+      className="bg-white/50 backdrop-blur-md p-4 rounded-2xl border border-white/60 shadow-[0_2px_12px_-4px_rgba(0,82,255,0.06)] flex items-start gap-4 mb-3 hover:bg-white/70 transition-all duration-200"
     >
-      <div className="h-12 w-12 rounded-full bg-[#F8FAFC] border border-slate-100 flex items-center justify-center flex-shrink-0 text-[#0052FF]">
-        {/* Placeholder for group avatars. Usually it's an image or avatars stack. Using icon for now */}
+      <div className="h-12 w-12 rounded-full bg-[#0052FF]/8 border border-[#0052FF]/10 flex items-center justify-center flex-shrink-0 text-[#0052FF]">
         <Users size={20} />
       </div>
       
@@ -40,7 +39,7 @@ export function GroupListItem({ name, amount, frequency, membersCount, maxMember
         </p>
 
         {/* Mini Progress Bar */}
-        <div className="w-full bg-slate-100 h-1.5 rounded-full overflow-hidden">
+        <div className="w-full bg-[#0052FF]/8 h-1.5 rounded-full overflow-hidden">
           <motion.div 
             initial={{ width: 0 }}
             animate={{ width: `${progress * 100}%` }}

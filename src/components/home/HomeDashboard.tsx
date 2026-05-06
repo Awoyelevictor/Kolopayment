@@ -26,7 +26,7 @@ export function HomeDashboard() {
       frequency: "weekly",
       membersCount: 10,
       maxMembers: 10,
-      progress: 0.3, // 3/10 members payout complete for instance
+      progress: 0.3,
       isNextPayout: true,
     },
     {
@@ -36,7 +36,7 @@ export function HomeDashboard() {
       frequency: "weekly",
       membersCount: 6,
       maxMembers: 8,
-      progress: 0.75, // 6/8
+      progress: 0.75,
     }
   ];
 
@@ -51,7 +51,7 @@ export function HomeDashboard() {
         <div>
           <h1 className="text-2xl font-bold tracking-tight text-slate-900 leading-tight">Good morning,<br/>Goodluck</h1>
         </div>
-        <button onClick={() => navigate('notifications')} className="h-12 w-12 rounded-full bg-white border border-slate-200 flex items-center justify-center relative text-slate-600 hover:bg-slate-50 shadow-sm transition-colors">
+        <button onClick={() => navigate('notifications')} className="h-12 w-12 rounded-full bg-white/60 backdrop-blur-md border border-white/60 flex items-center justify-center relative text-slate-600 hover:bg-white/80 shadow-[0_2px_10px_-3px_rgba(0,0,0,0.06)] transition-colors">
           <Bell size={22} className="text-slate-700" />
           <span className="absolute top-3 right-3 h-2.5 w-2.5 rounded-full bg-red-500 border-2 border-white" />
         </button>
@@ -89,8 +89,8 @@ export function HomeDashboard() {
           <button className="text-[#0052FF] text-xs font-semibold hover:underline">View all</button>
         </div>
         
-        <div className="bg-white rounded-3xl border border-slate-100 shadow-sm p-4 space-y-4">
-          <div className="flex items-start gap-4 cursor-pointer hover:bg-slate-50 transition-colors p-2 -mx-2 rounded-xl">
+        <div className="bg-white/50 backdrop-blur-md rounded-3xl border border-white/60 shadow-[0_2px_16px_-4px_rgba(0,82,255,0.06)] p-4 space-y-4">
+          <div className="flex items-start gap-4 cursor-pointer hover:bg-white/40 transition-colors p-2 -mx-2 rounded-xl">
             <div className="h-10 w-10 rounded-full bg-[#22C55E]/10 flex items-center justify-center flex-shrink-0 text-[#22C55E]">
               <ArrowUpRight size={20} />
             </div>
@@ -103,8 +103,8 @@ export function HomeDashboard() {
               <p className="text-xs text-slate-400">10:30 AM</p>
             </div>
           </div>
-          <div className="h-px bg-slate-50"></div>
-          <div className="flex items-start gap-4 cursor-pointer hover:bg-slate-50 transition-colors p-2 -mx-2 rounded-xl">
+          <div className="h-px bg-white/40"></div>
+          <div className="flex items-start gap-4 cursor-pointer hover:bg-white/40 transition-colors p-2 -mx-2 rounded-xl">
             <div className="h-10 w-10 rounded-full bg-orange-50 flex items-center justify-center flex-shrink-0 text-orange-500">
               <BellRing size={20} />
             </div>

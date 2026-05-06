@@ -19,10 +19,10 @@ export function ProfileSettings() {
       <h1 className="text-2xl font-bold tracking-tight text-slate-900 mb-8">Settings</h1>
       
       {/* Profile Header */}
-      <div className="bg-white rounded-3xl p-6 border border-slate-100 shadow-sm flex items-center justify-between mb-8">
+      <div className="bg-white/50 backdrop-blur-md rounded-3xl p-6 border border-white/60 shadow-[0_2px_16px_-4px_rgba(0,82,255,0.06)] flex items-center justify-between mb-8">
         <div className="flex items-center gap-4">
           <div className="relative">
-            <div className="h-16 w-16 bg-slate-100 rounded-full flex items-center justify-center text-2xl font-bold text-slate-600 shadow-inner">
+            <div className="h-16 w-16 bg-white/60 rounded-full flex items-center justify-center text-2xl font-bold text-slate-600 shadow-sm border border-white/80">
               GE
             </div>
             <button className="absolute -bottom-1 -right-1 bg-[#0052FF] text-white p-1.5 rounded-full border-2 border-white shadow-sm">
@@ -38,17 +38,17 @@ export function ProfileSettings() {
       </div>
 
       {/* Menu Options */}
-      <div className="bg-white rounded-3xl border border-slate-100 shadow-sm overflow-hidden mb-6">
-        <div className="divide-y divide-slate-100">
+      <div className="bg-white/50 backdrop-blur-md rounded-3xl border border-white/60 shadow-[0_2px_16px_-4px_rgba(0,82,255,0.06)] overflow-hidden mb-6">
+        <div className="divide-y divide-white/40">
           {menuItems.map((item, idx) => (
             <motion.button
               key={idx}
               onClick={item.action}
               whileTap={{ scale: 0.98 }}
-              className="w-full flex items-center justify-between p-5 hover:bg-slate-50 transition-colors"
+              className="w-full flex items-center justify-between p-5 hover:bg-white/40 transition-colors"
             >
               <div className="flex items-center gap-4">
-                <div className="text-slate-400">
+                <div className="text-slate-400 bg-white/60 p-2 rounded-xl border border-white/80 shadow-sm">
                   {item.icon}
                 </div>
                 <span className="font-semibold text-slate-700 text-sm">{item.label}</span>
@@ -61,7 +61,7 @@ export function ProfileSettings() {
 
       <motion.button
         whileTap={{ scale: 0.98 }}
-        className="w-full flex items-center justify-center gap-2 p-5 bg-red-50 text-red-600 rounded-2xl font-semibold text-sm hover:bg-red-100 transition-colors"
+        className="w-full flex items-center justify-center gap-2 p-5 bg-red-50/50 backdrop-blur-md text-red-600 rounded-2xl font-semibold text-sm hover:bg-red-50 transition-colors border border-red-100/40"
       >
         <LogOut size={18} />
         Log Out

@@ -9,7 +9,7 @@ export function NextPaymentCard() {
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: 0.4 }}
-      className="bg-white p-5 rounded-3xl border border-slate-100 shadow-[0_2px_10px_-4px_rgba(0,0,0,0.05)] mb-4"
+      className="bg-white/50 backdrop-blur-md p-5 rounded-3xl border border-white/60 shadow-[0_2px_16px_-4px_rgba(0,82,255,0.06)] mb-4"
     >
       <div className="flex justify-between items-start mb-4">
         <div>
@@ -24,7 +24,7 @@ export function NextPaymentCard() {
         onClick={() => navigate('payment-drawer', { groupId: 'g1', goBackTo: 'home' })}
         whileTap={{ scale: 0.98 }}
         whileHover={{ translateY: -2 }}
-        className="w-full mt-2 bg-[#0052FF]/10 text-[#0052FF] font-semibold py-3.5 rounded-2xl hover:bg-[#0052FF]/15 transition-colors"
+        className="w-full mt-2 bg-[#0052FF]/10 text-[#0052FF] font-semibold py-3.5 rounded-2xl hover:bg-[#0052FF]/15 transition-all duration-200 backdrop-blur-md"
       >
         Pay ₦5,000.00
       </motion.button>

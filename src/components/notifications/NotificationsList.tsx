@@ -94,20 +94,20 @@ export function NotificationsList() {
   };
 
   const getIconBg = (type: string, category: string) => {
-    if (category === 'groups') return 'bg-[#0052FF]/10 border-white';
-    if (type === 'success') return 'bg-[#22C55E]/10 border-white';
-    if (type === 'warning' && category === 'system') return 'bg-red-50 border-white';
-    if (type === 'warning') return 'bg-orange-50 border-white';
-    if (type === 'error') return 'bg-red-50 border-white';
-    return 'bg-slate-100 border-white';
+    if (category === 'groups') return 'bg-[#0052FF]/10 border-white/60';
+    if (type === 'success') return 'bg-[#22C55E]/10 border-white/60';
+    if (type === 'warning' && category === 'system') return 'bg-red-50 border-white/60';
+    if (type === 'warning') return 'bg-orange-50 border-white/60';
+    if (type === 'error') return 'bg-red-50 border-white/60';
+    return 'bg-white/60 border-white/80 backdrop-blur-sm';
   };
 
   return (
-    <div className="min-h-screen bg-[#F8FAFC] pb-24 xl:pb-0">
+    <div className="min-h-screen pb-24 xl:pb-0">
       {/* Header */}
-      <div className="bg-white px-6 pt-10 pb-4 border-b border-slate-100 sticky top-0 z-20">
+      <div className="bg-white/50 backdrop-blur-xl px-6 pt-10 pb-4 border-b border-white/40 sticky top-0 z-20">
         <div className="flex items-center gap-4 mb-4">
-          <button onClick={() => navigate('home')} className="p-2 -ml-2 text-slate-500 hover:text-slate-900 transition-colors rounded-full hover:bg-slate-50">
+          <button onClick={() => navigate('home')} className="p-2 -ml-2 text-slate-500 hover:text-slate-900 transition-colors rounded-full hover:bg-white/50">
             <ArrowLeft size={24} />
           </button>
           <h1 className="text-2xl font-bold tracking-tight text-slate-900">Notifications</h1>
@@ -133,8 +133,8 @@ export function NotificationsList() {
       </div>
 
       <div className="px-6 py-6 w-full max-w-2xl mx-auto">
-        <div className="bg-white rounded-3xl border border-slate-100 shadow-sm overflow-hidden mb-6">
-          <div className="divide-y divide-slate-100">
+        <div className="bg-white/50 backdrop-blur-md rounded-3xl border border-white/60 shadow-[0_2px_16px_-4px_rgba(0,82,255,0.06)] overflow-hidden mb-6">
+          <div className="divide-y divide-white/40">
             {filteredNotifs.length > 0 ? (
               filteredNotifs.map((notif, idx) => (
                 <motion.div 
@@ -142,7 +142,7 @@ export function NotificationsList() {
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: idx * 0.05 }}
                   key={notif.id}
-                  className={`p-5 flex items-start gap-4 transition-colors ${!notif.read ? 'bg-[#0052FF]/[0.02]' : 'hover:bg-slate-50'}`}
+                  className={`p-5 flex items-start gap-4 transition-all ${!notif.read ? 'bg-[#0052FF]/5 shadow-inner' : 'hover:bg-white/40'}`}
                 >
                   <div className={`h-12 w-12 rounded-full flex items-center justify-center flex-shrink-0 border-[3px] shadow-sm ${getIconBg(notif.type, notif.category)}`}>
                     {getIcon(notif.type, notif.category)}
@@ -155,7 +155,7 @@ export function NotificationsList() {
                     <p className="text-sm text-slate-500">{notif.desc}</p>
                   </div>
                   {!notif.read && (
-                    <div className="h-2.5 w-2.5 rounded-full bg-[#0052FF] mt-2 flex-shrink-0 shadow-sm shadow-blue-500/30" />
+                    <div className="h-2.5 w-2.5 rounded-full bg-[#0052FF] mt-2 flex-shrink-0 shadow-[0_0_10px_rgba(0,82,255,0.5)]" />
                   )}
                 </motion.div>
               ))

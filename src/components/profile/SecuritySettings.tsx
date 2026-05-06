@@ -6,22 +6,22 @@ export function SecuritySettings() {
   const { navigate } = useNavigation();
 
   return (
-    <div className="min-h-screen bg-[#F8FAFC] pb-24 xl:pb-0 flex flex-col items-center">
-      <div className="w-full max-w-[420px] bg-white min-h-screen xl:min-h-[85vh] xl:mt-8 xl:rounded-[32px] xl:shadow-sm xl:border border-slate-100 flex flex-col">
+    <div className="min-h-screen pb-24 xl:pb-0 flex flex-col items-center">
+      <div className="w-full max-w-[420px] bg-white/70 backdrop-blur-2xl min-h-screen xl:min-h-[85vh] xl:mt-8 xl:rounded-[32px] xl:shadow-[0_8px_32px_rgba(0,82,255,0.08)] border border-white/60 flex flex-col">
         {/* Header */}
-        <div className="flex items-center px-6 pt-10 pb-6 border-b border-slate-100">
-          <button onClick={() => navigate('profile')} className="p-2 -ml-2 text-slate-500 hover:text-slate-900 transition-colors rounded-full hover:bg-slate-50">
+        <div className="flex items-center px-6 pt-10 pb-6 border-b border-white/40">
+          <button onClick={() => navigate('profile')} className="p-2 -ml-2 text-slate-500 hover:text-slate-900 transition-colors rounded-full hover:bg-white/50">
             <ArrowLeft size={24} />
           </button>
           <h1 className="text-xl font-bold tracking-tight text-slate-900 ml-2">Security Settings</h1>
         </div>
 
         <div className="flex-1 px-6 py-6">
-          <div className="bg-white rounded-3xl border border-slate-100 shadow-sm overflow-hidden mb-6">
-            <div className="divide-y divide-slate-100">
-              <motion.button whileTap={{ scale: 0.98 }} className="w-full flex items-center justify-between p-5 hover:bg-slate-50 transition-colors">
+          <div className="bg-white/50 backdrop-blur-md rounded-3xl border border-white/60 shadow-[0_2px_16px_-4px_rgba(0,82,255,0.06)] overflow-hidden mb-6">
+            <div className="divide-y divide-white/40">
+              <motion.button whileTap={{ scale: 0.98 }} className="w-full flex items-center justify-between p-5 hover:bg-white/40 transition-colors text-left">
                 <div className="flex items-center gap-4">
-                  <div className="text-slate-400 bg-slate-50 p-2 rounded-full border border-slate-100">
+                  <div className="text-[#0052FF] bg-white/60 p-2 rounded-xl border border-white/80 shadow-sm">
                     <Lock size={18} />
                   </div>
                   <span className="font-semibold text-slate-700 text-sm">Change Password</span>
@@ -29,9 +29,9 @@ export function SecuritySettings() {
                 <ChevronRight size={18} className="text-slate-300" />
               </motion.button>
 
-              <motion.button whileTap={{ scale: 0.98 }} className="w-full flex items-center justify-between p-5 hover:bg-slate-50 transition-colors">
+              <motion.button whileTap={{ scale: 0.98 }} className="w-full flex items-center justify-between p-5 hover:bg-white/40 transition-colors text-left">
                 <div className="flex items-center gap-4">
-                  <div className="text-slate-400 bg-slate-50 p-2 rounded-full border border-slate-100">
+                  <div className="text-[#0052FF] bg-white/60 p-2 rounded-xl border border-white/80 shadow-sm">
                     <Key size={18} />
                   </div>
                   <span className="font-semibold text-slate-700 text-sm">Transaction PIN</span>
@@ -41,20 +41,20 @@ export function SecuritySettings() {
 
               <div className="w-full flex items-center justify-between p-5">
                 <div className="flex items-center gap-4">
-                  <div className="text-slate-400 bg-slate-50 p-2 rounded-full border border-slate-100">
+                  <div className="text-[#0052FF] bg-white/60 p-2 rounded-xl border border-white/80 shadow-sm">
                     <Shield size={18} />
                   </div>
                   <span className="font-semibold text-slate-700 text-sm">Two-Factor Authentication</span>
                 </div>
                 {/* Custom Toggle */}
-                <div className="w-11 h-6 bg-[#0052FF] rounded-full relative cursor-pointer shadow-inner">
+                <div className="w-11 h-6 bg-[#0052FF] rounded-full relative cursor-pointer shadow-[0_0_8px_rgba(0,82,255,0.4)]">
                    <div className="absolute right-1 top-1 h-4 w-4 bg-white rounded-full shadow-sm" />
                 </div>
               </div>
 
-              <motion.button whileTap={{ scale: 0.98 }} className="w-full flex items-center justify-between p-5 hover:bg-slate-50 transition-colors">
+              <motion.button whileTap={{ scale: 0.98 }} className="w-full flex items-center justify-between p-5 hover:bg-white/40 transition-colors text-left">
                 <div className="flex items-center gap-4">
-                  <div className="text-slate-400 bg-slate-50 p-2 rounded-full border border-slate-100">
+                  <div className="text-[#0052FF] bg-white/60 p-2 rounded-xl border border-white/80 shadow-sm">
                     <Laptop size={18} />
                   </div>
                   <span className="font-semibold text-slate-700 text-sm">Login Devices</span>
@@ -68,10 +68,10 @@ export function SecuritySettings() {
           </div>
 
           {/* Destructive Action */}
-          <div className="bg-white rounded-3xl border border-red-100 shadow-sm overflow-hidden border-dashed">
-            <motion.button whileTap={{ scale: 0.98 }} className="w-full flex items-center justify-between p-5 hover:bg-red-50/50 transition-colors">
+          <div className="bg-red-50/30 backdrop-blur-sm rounded-3xl border border-red-100/40 shadow-sm overflow-hidden border-dashed">
+            <motion.button whileTap={{ scale: 0.98 }} className="w-full flex items-center justify-between p-5 hover:bg-red-50/50 transition-colors text-left">
               <div className="flex items-start gap-4">
-                <div className="text-red-500 bg-red-50 p-2 rounded-full border border-red-100">
+                <div className="text-red-500 bg-white/60 p-2 rounded-xl border border-red-100/60 shadow-sm">
                   <Trash2 size={18} />
                 </div>
                 <div className="text-left">

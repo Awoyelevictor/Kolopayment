@@ -1,7 +1,8 @@
 import { Plus, ShieldCheck, ShieldAlert, Star } from 'lucide-react';
 import { motion } from 'motion/react';
 
-export function MembersTab() {
+export function MembersTab({ groupData }: { groupData?: any }) {
+  // Use mock members for now since full member expansion isn't fully implemented in DRF view yet
   const members = [
     { id: 1, name: 'Sarah A.', role: 'Admin', isYou: false, isVerified: true, position: 1, trustScore: 5 },
     { id: 2, name: 'Goodluck E.', role: 'Member', isYou: true, isVerified: true, position: 3, trustScore: 4.5 },
@@ -25,21 +26,24 @@ export function MembersTab() {
   };
 
   return (
-    <div className="bg-white rounded-3xl border border-slate-100 shadow-sm overflow-hidden">
-      <div className="divide-y divide-slate-100">
+    <div className="bg-white/50 backdrop-blur-md rounded-3xl border border-white/60 shadow-[0_2px_16px_-4px_rgba(0,82,255,0.06)] overflow-hidden">
+      <div className="p-4 border-b border-white/40 flex justify-between items-center bg-white/40">
+         <h3 className="text-sm font-semibold text-slate-900">Members ({groupData?.current_members || 0}/{groupData?.max_members || 0})</h3>
+      </div>
+      <div className="divide-y divide-white/40">
         {members.map((member, idx) => (
           <motion.div 
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: idx * 0.05 }}
             key={member.id} 
-            className="p-4 flex items-center justify-between hover:bg-slate-50 transition-colors"
+            className="p-4 flex items-center justify-between hover:bg-white/40 transition-colors"
           >
             <div className="flex items-center gap-3">
               <div className="w-6 text-center text-xs font-semibold text-slate-400">
                 {idx + 1}
               </div>
-              <div className="h-10 w-10 bg-slate-100 rounded-full flex items-center justify-center font-bold text-slate-600 text-sm shadow-inner relative">
+              <div className="h-10 w-10 bg-white/60 rounded-full flex items-center justify-center font-bold text-slate-600 text-sm shadow-sm border border-white/80 relative">
                 {member.name.charAt(0)}
                 {member.role === 'Admin' && (
                   <div className="absolute -bottom-1 -right-1 bg-[#0052FF] text-white text-[8px] px-1 rounded-sm font-bold shadow-sm">
@@ -72,10 +76,10 @@ export function MembersTab() {
         ))}
       </div>
       
-      <div className="p-4 bg-slate-50/50">
+      <div className="p-4 bg-white/30 backdrop-blur-sm">
         <motion.button 
           whileTap={{ scale: 0.98 }}
-          className="w-full bg-white border border-dashed border-slate-300 text-[#0052FF] font-semibold py-3.5 rounded-2xl flex items-center justify-center gap-2 hover:bg-[#0052FF]/5 hover:border-[#0052FF]/30 transition-colors shadow-sm"
+          className="w-full bg-white/60 backdrop-blur-md border border-dashed border-white/80 text-[#0052FF] font-semibold py-3.5 rounded-2xl flex items-center justify-center gap-2 hover:bg-white/80 transition-all shadow-[0_2px_10px_-3px_rgba(0,82,255,0.06)]"
         >
           <Plus size={18} /> Invite Member
         </motion.button>

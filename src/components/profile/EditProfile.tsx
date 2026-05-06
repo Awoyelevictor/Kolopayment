@@ -6,11 +6,11 @@ export function EditProfile() {
   const { navigate } = useNavigation();
 
   return (
-    <div className="min-h-screen bg-[#F8FAFC] pb-24 xl:pb-0 flex flex-col items-center">
-      <div className="w-full max-w-[420px] bg-white min-h-screen xl:min-h-[85vh] xl:mt-8 xl:rounded-[32px] xl:shadow-sm xl:border border-slate-100 flex flex-col">
+    <div className="min-h-screen pb-24 xl:pb-0 flex flex-col items-center">
+      <div className="w-full max-w-[420px] bg-white/70 backdrop-blur-2xl min-h-screen xl:min-h-[85vh] xl:mt-8 xl:rounded-[32px] xl:shadow-[0_8px_32px_rgba(0,82,255,0.08)] border border-white/60 flex flex-col">
         {/* Header */}
-        <div className="flex items-center px-6 pt-10 pb-6 border-b border-slate-100">
-          <button onClick={() => navigate('profile')} className="p-2 -ml-2 text-slate-500 hover:text-slate-900 transition-colors rounded-full hover:bg-slate-50">
+        <div className="flex items-center px-6 pt-10 pb-6 border-b border-white/40">
+          <button onClick={() => navigate('profile')} className="p-2 -ml-2 text-slate-500 hover:text-slate-900 transition-colors rounded-full hover:bg-white/50">
             <ArrowLeft size={24} />
           </button>
           <h1 className="text-xl font-bold tracking-tight text-slate-900 ml-2">Edit Profile</h1>
@@ -20,7 +20,7 @@ export function EditProfile() {
           {/* Avatar Section */}
           <div className="flex justify-center mb-10">
             <div className="relative">
-              <div className="h-24 w-24 bg-slate-100 rounded-full flex items-center justify-center text-3xl font-bold text-slate-600 shadow-inner border-4 border-white shadow-sm overflow-hidden">
+              <div className="h-24 w-24 bg-white/60 rounded-full flex items-center justify-center text-3xl font-bold text-slate-600 shadow-sm border-4 border-white overflow-hidden backdrop-blur-md">
                 GE
               </div>
               <button className="absolute bottom-0 right-0 bg-[#0052FF] text-white p-2 rounded-full border-2 border-white shadow-sm hover:scale-105 transition-transform">
@@ -36,7 +36,7 @@ export function EditProfile() {
               <input 
                 type="text" 
                 defaultValue="Goodluck E." 
-                className="w-full px-4 py-3.5 bg-slate-50 border border-slate-200 rounded-2xl outline-none focus:border-[#0052FF] focus:bg-white transition-colors text-slate-900 font-medium" 
+                className="w-full px-4 py-3.5 bg-white/50 backdrop-blur-md border border-white/60 rounded-2xl outline-none focus:border-[#0052FF] focus:bg-white/80 transition-all text-slate-900 font-medium shadow-sm" 
               />
             </div>
             
@@ -45,7 +45,7 @@ export function EditProfile() {
               <input 
                 type="tel" 
                 defaultValue="+234 901 234 5678" 
-                className="w-full px-4 py-3.5 bg-slate-50 border border-slate-200 rounded-2xl outline-none focus:border-[#0052FF] focus:bg-white transition-colors text-slate-900 font-medium" 
+                className="w-full px-4 py-3.5 bg-white/50 backdrop-blur-md border border-white/60 rounded-2xl outline-none focus:border-[#0052FF] focus:bg-white/80 transition-all text-slate-900 font-medium shadow-sm" 
               />
             </div>
 
@@ -54,7 +54,7 @@ export function EditProfile() {
               <input 
                 type="email" 
                 defaultValue="goodluck@gmail.com" 
-                className="w-full px-4 py-3.5 bg-slate-50 border border-slate-200 rounded-2xl outline-none focus:border-[#0052FF] focus:bg-white transition-colors text-slate-900 font-medium" 
+                className="w-full px-4 py-3.5 bg-white/50 backdrop-blur-md border border-white/60 rounded-2xl outline-none focus:border-[#0052FF] focus:bg-white/80 transition-all text-slate-900 font-medium shadow-sm" 
               />
             </div>
           </div>
@@ -64,7 +64,7 @@ export function EditProfile() {
               whileTap={{ scale: 0.98 }}
               whileHover={{ translateY: -2 }}
               onClick={() => navigate('profile')}
-              className="w-full bg-[#0052FF] text-white font-semibold py-4 rounded-2xl shadow-lg shadow-blue-500/30"
+              className="w-full bg-[#0052FF] text-white font-semibold py-4 rounded-2xl shadow-[0_4px_14px_0_rgba(0,82,255,0.3)]"
             >
               Save Changes
             </motion.button>
