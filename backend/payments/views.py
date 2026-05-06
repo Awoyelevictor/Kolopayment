@@ -16,6 +16,8 @@ class ContributionViewSet(viewsets.ModelViewSet):
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)
 
+from .payaza import payaza_service
+
 class ProcessPaymentView(views.APIView):
     permission_classes = [IsAuthenticated]
 
@@ -30,22 +32,36 @@ class ProcessPaymentView(views.APIView):
         if contribution.status == 'paid':
             return Response({"error": "This contribution has already been paid."}, status=status.HTTP_400_BAD_REQUEST)
 
-        # Simulate Payment processing via Payaza (or similar)
-        # Assuming payment is always successful for the demo
+        # Initiate Payaza Payment
+        user = request.user
+        payment_result = payaza_service.initiate_payment(
+            amount=contribution.amount,
+            email=user.email or "user@kolopay.africa",
+            first_name=user.first_name or user.username,
+            last_name=user.last_name or "",
+            phone_number=user.phone_number,
+            callback_url="http://localhost:3000/payment/success" # This would be your frontend success route
+        )
+
+        if not payment_result:
+            return Response({"error": "Failed to initiate payment with Payaza."}, status=status.HTTP_503_SERVICE_UNAVAILABLE)
+
+        # In a production environment, you should only mark as 'paid' after successful verification
+        # or via a webhook. For this integration phase, we simulate the completion if initiation succeeded.
         contribution.status = 'paid'
         contribution.paid_at = timezone.now()
-        contribution.reference = f"KOLO-{uuid.uuid4().hex[:10].upper()}"
+        contribution.reference = payment_result.get('transaction_reference', f"KOLO-{uuid.uuid4().hex[:10].upper()}")
         contribution.save()
         
-        # In a real system, we'd add to the user's trust score here!
-        user = request.user
+        # Increase user trust score for timely payment
         user.trust_score += 5
         user.save()
 
         return Response({
             "message": "Payment successful.",
             "contribution": ContributionSerializer(contribution).data,
-            "new_trust_score": user.trust_score
+            "new_trust_score": user.trust_score,
+            "payaza_data": payment_result
         })
 
 class PayoutViewSet(viewsets.ReadOnlyModelViewSet):

@@ -12,6 +12,7 @@ https://docs.djangoproject.com/en/6.0/ref/settings/
 
 from pathlib import Path
 from datetime import timedelta
+import os
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -147,3 +148,8 @@ SIMPLE_JWT = {
     'REFRESH_TOKEN_LIFETIME': timedelta(days=7),
     'AUTH_HEADER_TYPES': ('Bearer',),
 }
+
+# Payaza Integration
+PAYAZA_API_KEY = os.environ.get('PAYAZA_API_KEY', 'test_key_placeholder')
+PAYAZA_MERCHANT_ID = os.environ.get('PAYAZA_MERCHANT_ID', 'test_merchant_id')
+PAYAZA_BASE_URL = 'https://api.payaza.africa/live/payaza/api/v1' if not os.environ.get('DEBUG', 'True') == 'False' else 'https://api.payaza.africa/stg/payaza/api/v1'
