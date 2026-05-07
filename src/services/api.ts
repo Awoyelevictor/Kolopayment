@@ -69,7 +69,6 @@ class ApiService {
       });
     } catch (err: any) {
       console.error('Fetch error:', err);
-      // This catches "Failed to fetch" (network errors)
       throw new Error('Unable to connect to server. Please check your internet connection or try again later.');
     }
 
@@ -107,10 +106,16 @@ class ApiService {
     }
 
     if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}));
+      let errorData;
+      try {
+        errorData = await response.json();
+      } catch (e) {
+        errorData = { detail: `Server error (${response.status})` };
+      }
+      
       console.error('API Error Response:', errorData);
 
-      let errorMessage = 'An unexpected error occurred';
+      let errorMessage = 'An error occurred. Please try again.';
       
       if (errorData.error) {
         errorMessage = errorData.error;
@@ -118,17 +123,21 @@ class ApiService {
         errorMessage = errorData.detail;
       } else if (errorData.message) {
         errorMessage = errorData.message;
-      } else if (typeof errorData === 'object') {
-        // Handle DRF field errors (e.g. {"email": ["This field is required."]})
-        const firstKey = Object.keys(errorData)[0];
-        if (firstKey) {
+      } else if (errorData.non_field_errors) {
+        errorMessage = Array.isArray(errorData.non_field_errors) ? errorData.non_field_errors[0] : errorData.non_field_errors;
+      } else if (typeof errorData === 'object' && errorData !== null) {
+        const keys = Object.keys(errorData);
+        if (keys.length > 0) {
+          const firstKey = keys[0];
           const fieldError = errorData[firstKey];
+          
           if (Array.isArray(fieldError)) {
-            // "email: This field is required."
-            const fieldName = firstKey.charAt(0).toUpperCase() + firstKey.slice(1).replace('_', ' ');
-            errorMessage = `${fieldName}: ${fieldError[0]}`;
+            const fieldName = firstKey === 'non_field_errors' ? '' : (firstKey.charAt(0).toUpperCase() + firstKey.slice(1).replace('_', ' ') + ': ');
+            errorMessage = `${fieldName}${fieldError[0]}`;
           } else if (typeof fieldError === 'string') {
             errorMessage = fieldError;
+          } else {
+            errorMessage = JSON.stringify(fieldError);
           }
         }
       }
