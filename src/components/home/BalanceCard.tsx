@@ -5,11 +5,22 @@ import { AddMoneyModal } from '../payment/AddMoneyModal';
 
 interface BalanceCardProps {
   trustScore?: number;
+  balance?: number | string;
 }
 
-export function BalanceCard({ trustScore = 100 }: BalanceCardProps) {
+export function BalanceCard({ trustScore = 100, balance = 0 }: BalanceCardProps) {
   const [isVisible, setIsVisible] = useState(true);
   const [isAddMoneyOpen, setIsAddMoneyOpen] = useState(false);
+
+  const formatAmount = (amount: string | number) => {
+    const parts = Number(amount).toFixed(2).split('.');
+    return {
+      whole: new Intl.NumberFormat('en-NG').format(Number(parts[0])),
+      decimal: parts[1]
+    };
+  };
+
+  const amountParts = formatAmount(balance);
 
   return (
     <>
@@ -39,7 +50,7 @@ export function BalanceCard({ trustScore = 100 }: BalanceCardProps) {
           <div className="mb-8">
             <p className="text-white/70 text-xs font-medium mb-1 tracking-wide uppercase">Total Savings</p>
             <h2 className={`text-4xl font-bold tracking-tight mb-1 transition-all duration-300 ${isVisible ? '' : 'blur-md select-none opacity-80'}`}>
-              ₦0.<span className="text-2xl opacity-60">00</span>
+              ₦{amountParts.whole}.<span className="text-2xl opacity-60">{amountParts.decimal}</span>
             </h2>
           </div>
 
@@ -47,7 +58,7 @@ export function BalanceCard({ trustScore = 100 }: BalanceCardProps) {
             <div>
               <p className="text-white/60 text-[10px] font-bold uppercase tracking-wider mb-1">Available to Withdraw</p>
               <p className={`font-bold text-lg tracking-tight transition-all duration-300 ${isVisible ? '' : 'blur-md select-none opacity-80'}`}>
-                ₦0.00
+                ₦{amountParts.whole}.{amountParts.decimal}
               </p>
             </div>
             

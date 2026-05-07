@@ -13,15 +13,23 @@ class GroupMembershipSerializer(serializers.ModelSerializer):
 class SavingsGroupSerializer(serializers.ModelSerializer):
     created_by = UserSerializer(read_only=True)
     members_count = serializers.SerializerMethodField()
+    is_member = serializers.SerializerMethodField()
     
     class Meta:
         model = SavingsGroup
         fields = ('id', 'name', 'description', 'contribution_amount', 'frequency', 
-                 'max_members', 'status', 'created_by', 'created_at', 'start_date', 'members_count')
+                 'max_members', 'status', 'created_by', 'created_at', 'start_date', 
+                 'members_count', 'is_member')
         read_only_fields = ('created_at', 'created_by', 'status')
 
     def get_members_count(self, obj):
         return obj.members.count()
+
+    def get_is_member(self, obj):
+        request = self.context.get('request')
+        if request and request.user.is_authenticated:
+            return obj.members.filter(user=request.user).exists()
+        return False
 
 class SavingsGroupDetailSerializer(SavingsGroupSerializer):
     members = GroupMembershipSerializer(many=True, read_only=True)

@@ -1,4 +1,4 @@
-import { Plus, Loader2 } from 'lucide-react';
+import { Plus, Loader2, Users, Search } from 'lucide-react';
 import { motion } from 'motion/react';
 import { useState, useEffect } from 'react';
 import { GroupListItem } from '../home/GroupListItem';
@@ -15,7 +15,6 @@ export function GroupsList() {
     const fetchGroups = async () => {
       try {
         const data = await api.getGroups();
-        // Assuming API returns an array or { results: [] } for paginated data
         const groupsList = Array.isArray(data) ? data : data.results || [];
         setGroups(groupsList);
       } catch (err) {
@@ -35,12 +34,20 @@ export function GroupsList() {
   const completedGroups = groups.filter(g => g.status === 'COMPLETED');
 
   return (
-    <div className="px-6 pt-10 pb-12 w-full max-w-lg mx-auto">
+    <div className="px-6 pt-10 pb-24 w-full max-w-lg mx-auto">
       <div className="flex items-center justify-between mb-8">
         <h1 className="text-2xl font-bold tracking-tight text-slate-900">My Groups</h1>
-        <button className="h-10 w-10 bg-white/60 backdrop-blur-md border border-white/60 rounded-full flex items-center justify-center text-slate-600 hover:text-slate-900 hover:bg-white/80 transition-colors shadow-[0_2px_10px_-3px_rgba(0,0,0,0.06)]">
-          <Plus size={20} />
-        </button>
+        <div className="flex gap-2">
+           <button className="h-10 w-10 bg-white/60 backdrop-blur-md border border-white/60 rounded-full flex items-center justify-center text-slate-600 hover:text-slate-900 shadow-sm transition-all">
+             <Search size={20} />
+           </button>
+           <button 
+             onClick={() => navigate('create-group')}
+             className="h-10 w-10 bg-[#0052FF] text-white rounded-full flex items-center justify-center hover:bg-[#003BBA] shadow-lg shadow-blue-500/20 transition-all"
+           >
+             <Plus size={20} />
+           </button>
+        </div>
       </div>
 
       {/* Tabs */}
@@ -88,8 +95,18 @@ export function GroupsList() {
               </div>
             ))}
             {activeTab === 'active' && activeGroups.length === 0 && (
-              <div className="text-center py-10 text-sm text-slate-500 font-medium">
-                You don't have any active groups yet.
+              <div className="text-center py-16 flex flex-col items-center">
+                <div className="h-16 w-16 bg-slate-50 rounded-full flex items-center justify-center text-slate-300 mb-4">
+                  <Users size={32} />
+                </div>
+                <p className="text-slate-500 font-medium mb-1">No groups found</p>
+                <p className="text-slate-400 text-xs mb-6">You haven't joined or created any groups yet.</p>
+                <button 
+                  onClick={() => navigate('create-group')}
+                  className="text-[#0052FF] font-bold text-sm"
+                >
+                  Create your first group
+                </button>
               </div>
             )}
             
@@ -108,8 +125,8 @@ export function GroupsList() {
               </div>
             ))}
             {activeTab === 'completed' && completedGroups.length === 0 && (
-              <div className="text-center py-10 text-sm text-slate-500 font-medium">
-                No completed groups yet.
+              <div className="text-center py-16 flex flex-col items-center">
+                <p className="text-slate-400 text-sm font-medium">No completed groups yet.</p>
               </div>
             )}
           </>
@@ -117,18 +134,18 @@ export function GroupsList() {
       </div>
 
       {/* Action Buttons */}
-      <div className="mt-8 space-y-3">
+      <div className="mt-8 space-y-4">
         <motion.button 
           whileTap={{ scale: 0.98 }}
-          whileHover={{ translateY: -2 }}
-          className="w-full bg-white/50 backdrop-blur-md text-[#0052FF] font-semibold py-4 rounded-2xl border border-white/60 shadow-[0_2px_10px_-3px_rgba(0,82,255,0.06)] flex items-center justify-center gap-2 hover:bg-white/70 transition-all"
+          onClick={() => navigate('join-group')}
+          className="w-full bg-white/60 backdrop-blur-md text-[#0052FF] font-bold py-4 rounded-2xl border border-white/80 shadow-[0_2px_12px_-3px_rgba(0,82,255,0.08)] flex items-center justify-center gap-2 hover:bg-white transition-all"
         >
-          <Plus size={20} /> Join a Group
+          <Users size={20} /> Join a Group
         </motion.button>
         <motion.button 
           whileTap={{ scale: 0.98 }}
-          whileHover={{ translateY: -2 }}
-          className="w-full bg-[#0052FF]/10 backdrop-blur-md text-[#0052FF] font-semibold py-4 rounded-2xl flex items-center justify-center gap-2 hover:bg-[#0052FF]/15 transition-all border border-[#0052FF]/10"
+          onClick={() => navigate('create-group')}
+          className="w-full bg-[#0052FF] text-white font-bold py-4 rounded-2xl flex items-center justify-center gap-2 hover:bg-[#003BBA] transition-all shadow-[0_4px_14px_0_rgba(0,82,255,0.3)]"
         >
           <Plus size={20} /> Create a New Group
         </motion.button>

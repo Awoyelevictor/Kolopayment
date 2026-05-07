@@ -68,7 +68,7 @@ export function HomeDashboard() {
       </div>
 
       {/* Balance Card */}
-      <BalanceCard trustScore={userData?.trust_score} />
+      <BalanceCard trustScore={userData?.trust_score} balance={userData?.balance} />
 
       {/* Next Payment Section */}
       <div className="mt-10 mb-8">

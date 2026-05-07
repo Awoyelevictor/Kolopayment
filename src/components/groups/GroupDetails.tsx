@@ -1,5 +1,5 @@
-import { ArrowLeft, Settings, Loader2 } from 'lucide-react';
-import { motion } from 'motion/react';
+import { ArrowLeft, Settings, Loader2, UserPlus, Check } from 'lucide-react';
+import { motion, AnimatePresence } from 'motion/react';
 import { useState, useEffect } from 'react';
 import { useNavigation } from '../../contexts/NavigationContext';
 import { OverviewTab } from './tabs/OverviewTab';
@@ -13,22 +13,44 @@ export function GroupDetails() {
   const [activeTab, setActiveTab] = useState<'Overview' | 'Members' | 'Payments' | 'Activity'>('Overview');
   const [groupData, setGroupData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [joining, setJoining] = useState(false);
+  const [joinSuccess, setJoinSuccess] = useState(false);
 
-  const groupId = params?.groupId || 1; // Fallback to 1 for testing if no param
+  const groupId = params?.groupId;
+
+  const fetchGroupDetails = async () => {
+    if (!groupId) return;
+    try {
+      const data = await api.getGroupDetails(groupId);
+      setGroupData(data);
+    } catch (err) {
+      console.error('Failed to load group details:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    const fetchGroupDetails = async () => {
-      try {
-        const data = await api.getGroupDetails(groupId);
-        setGroupData(data);
-      } catch (err) {
-        console.error('Failed to load group details:', err);
-      } finally {
-        setLoading(false);
-      }
-    };
     fetchGroupDetails();
   }, [groupId]);
+
+  const handleJoin = async () => {
+    if (!groupId) return;
+    setJoining(true);
+    try {
+      await api.joinGroup(groupId);
+      setJoinSuccess(true);
+      setTimeout(() => {
+        setJoinSuccess(false);
+        fetchGroupDetails();
+      }, 2000);
+    } catch (err) {
+      console.error('Failed to join group:', err);
+      alert('Failed to join group. Please try again.');
+    } finally {
+      setJoining(false);
+    }
+  };
 
   const tabs = ['Overview', 'Members', 'Payments', 'Activity'] as const;
 
@@ -61,16 +83,42 @@ export function GroupDetails() {
   };
 
   return (
-    <div className="min-h-screen pb-24 xl:pb-0">
+    <div className="min-h-screen pb-24 xl:pb-0 relative">
+      <AnimatePresence>
+        {joinSuccess && (
+          <motion.div 
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            className="fixed top-20 left-6 right-6 z-[60] bg-green-500 text-white p-4 rounded-2xl shadow-xl flex items-center justify-center gap-2"
+          >
+            <Check size={20} strokeWidth={3} />
+            <span className="font-bold">Successfully joined the group!</span>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       {/* Header */}
       <div className="bg-white/50 backdrop-blur-xl px-6 pt-10 pb-6 border-b border-white/40 sticky top-0 z-20">
         <div className="flex items-center justify-between mb-6">
           <button onClick={() => navigate('groups')} className="p-2 -ml-2 text-slate-500 hover:text-slate-900 transition-colors rounded-full hover:bg-white/50">
             <ArrowLeft size={24} />
           </button>
-          <button className="p-2 -mr-2 text-slate-500 hover:text-slate-900 transition-colors rounded-full hover:bg-white/50">
-            <Settings size={22} />
-          </button>
+          <div className="flex items-center gap-2">
+            {!groupData.is_member && (
+              <button 
+                onClick={handleJoin}
+                disabled={joining}
+                className="bg-[#0052FF] text-white px-4 py-2 rounded-xl text-sm font-bold shadow-lg shadow-blue-500/20 flex items-center gap-2 disabled:opacity-70"
+              >
+                {joining ? <Loader2 className="animate-spin" size={16} /> : <UserPlus size={16} />}
+                Join Group
+              </button>
+            )}
+            <button className="p-2 -mr-2 text-slate-500 hover:text-slate-900 transition-colors rounded-full hover:bg-white/50">
+              <Settings size={22} />
+            </button>
+          </div>
         </div>
 
         <div className="flex items-center justify-between">
@@ -78,24 +126,24 @@ export function GroupDetails() {
             <h1 className="text-2xl font-bold tracking-tight text-slate-900 mb-1">{groupData.name}</h1>
             <p className="text-xs font-medium text-slate-500">Group ID: #{groupData.id.toString().padStart(6, '0')} <span className="inline-block ml-1 opacity-50 cursor-pointer hover:opacity-100">📋</span></p>
           </div>
-          <div className={`px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wide ${groupData.status === 'ACTIVE' ? 'bg-[#22C55E]/10 text-[#22C55E]' : 'bg-orange-100 text-orange-600'}`}>
+          <div className={`px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider ${groupData.status === 'active' ? 'bg-[#22C55E]/10 text-[#22C55E] border border-[#22C55E]/20' : 'bg-amber-100 text-amber-600 border border-amber-200'}`}>
             {groupData.status}
           </div>
         </div>
 
         {/* Stats Grid */}
         <div className="grid grid-cols-3 gap-4 mt-6">
-          <div>
-            <p className="text-[10px] uppercase tracking-wider text-slate-500 font-semibold mb-1">Target</p>
-            <p className="font-bold text-slate-900">{formatAmount(groupData.target_amount || (groupData.contribution_amount * groupData.max_members))}</p>
+          <div className="bg-white/40 p-3 rounded-2xl border border-white/60">
+            <p className="text-[9px] uppercase tracking-wider text-slate-400 font-bold mb-1">Target</p>
+            <p className="text-xs font-bold text-slate-900">{formatAmount(groupData.contribution_amount * groupData.max_members)}</p>
           </div>
-          <div>
-            <p className="text-[10px] uppercase tracking-wider text-slate-500 font-semibold mb-1">Contribution</p>
-            <p className="font-bold text-slate-900">{formatAmount(groupData.contribution_amount)} <span className="text-xs font-medium text-slate-500 block capitalize">{groupData.contribution_frequency}</span></p>
+          <div className="bg-white/40 p-3 rounded-2xl border border-white/60">
+            <p className="text-[9px] uppercase tracking-wider text-slate-400 font-bold mb-1">Weekly</p>
+            <p className="text-xs font-bold text-slate-900">{formatAmount(groupData.contribution_amount)}</p>
           </div>
-          <div>
-            <p className="text-[10px] uppercase tracking-wider text-slate-500 font-semibold mb-1">Members</p>
-            <p className="font-bold text-slate-900">{groupData.current_members} / {groupData.max_members}</p>
+          <div className="bg-white/40 p-3 rounded-2xl border border-white/60">
+            <p className="text-[9px] uppercase tracking-wider text-slate-400 font-bold mb-1">Members</p>
+            <p className="text-xs font-bold text-slate-900">{groupData.members_count} / {groupData.max_members}</p>
           </div>
         </div>
       </div>

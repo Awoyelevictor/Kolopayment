@@ -41,28 +41,28 @@ class ApiService {
   logout() {
     localStorage.removeItem('access_token');
     localStorage.removeItem('refresh_token');
-    // We don't necessarily want to force a page reload here to avoid losing state
-    // but in some cases it's the safest way to clear all private data.
     window.location.href = '/'; 
   }
 
   async request(endpoint: string, options: RequestInit = {}): Promise<any> {
-    const headers = {
-      'Content-Type': 'application/json',
-      ...this.getAuthHeader(),
-      ...options.headers,
+    const isFormData = options.body instanceof FormData;
+    
+    const headers: Record<string, string> = {
+      ...this.getAuthHeader() as Record<string, string>,
+      ...(options.headers as Record<string, string>),
     };
+
+    if (!isFormData) {
+      headers['Content-Type'] = 'application/json';
+    }
 
     const response = await fetch(`${API_BASE_URL}${endpoint}`, {
       ...options,
       headers,
     });
 
-    // Handle 401 Unauthorized - potential token expiration
     if (response.status === 401) {
       const refresh = localStorage.getItem('refresh_token');
-      
-      // If we have a refresh token, try to refresh
       if (refresh) {
         if (!this.isRefreshing) {
           this.isRefreshing = true;
@@ -77,7 +77,6 @@ class ApiService {
           }
         }
 
-        // Return a promise that resolves when the token is refreshed
         return new Promise((resolve) => {
           this.addRefreshSubscriber((token: string) => {
             const newOptions = {
@@ -97,22 +96,15 @@ class ApiService {
 
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
-      
       let errorMessage = 'API request failed';
-      if (errorData.error) {
-        errorMessage = errorData.error;
-      } else if (errorData.detail) {
-        errorMessage = errorData.detail;
-      } else if (typeof errorData === 'object') {
+      if (errorData.error) errorMessage = errorData.error;
+      else if (errorData.detail) errorMessage = errorData.detail;
+      else if (typeof errorData === 'object') {
         const firstKey = Object.keys(errorData)[0];
         if (firstKey && Array.isArray(errorData[firstKey])) {
-          const fieldName = firstKey.replace('_', ' ');
-          errorMessage = `${fieldName.charAt(0).toUpperCase() + fieldName.slice(1)}: ${errorData[firstKey][0]}`;
-        } else if (firstKey && typeof errorData[firstKey] === 'string') {
-          errorMessage = errorData[firstKey];
+          errorMessage = `${firstKey}: ${errorData[firstKey][0]}`;
         }
       }
-      
       throw new Error(errorMessage);
     }
 
@@ -154,6 +146,26 @@ class ApiService {
   async getProfile() {
     return this.request('/auth/profile/', {
       method: 'GET'
+    });
+  }
+
+  async updateProfile(data: any) {
+    // If data contains a file, use FormData
+    let body;
+    if (data.profile_image instanceof File) {
+      body = new FormData();
+      Object.keys(data).forEach(key => {
+        if (data[key] !== undefined && data[key] !== null) {
+          body.append(key, data[key]);
+        }
+      });
+    } else {
+      body = JSON.stringify(data);
+    }
+
+    return this.request('/auth/profile/', {
+      method: 'PATCH',
+      body
     });
   }
 

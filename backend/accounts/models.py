@@ -6,8 +6,8 @@ class User(AbstractUser):
     bvn = models.CharField(max_length=11, blank=True, null=True)
     is_bvn_verified = models.BooleanField(default=False)
     trust_score = models.IntegerField(default=100)
-    
-    # Required to resolve conflicts if needed, though standard DRF shouldn't conflict if we set AUTH_USER_MODEL
+    profile_image = models.ImageField(upload_to='profile_images/', null=True, blank=True)
+    balance = models.DecimalField(max_digits=12, decimal_places=2, default=0.00)
     
     def __str__(self):
         return self.get_full_name() or self.username
