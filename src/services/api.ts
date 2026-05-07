@@ -22,20 +22,25 @@ class ApiService {
     const refresh = localStorage.getItem('refresh_token');
     if (!refresh) throw new Error('No refresh token available');
 
-    const response = await fetch(`${API_BASE_URL}/auth/token/refresh/`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ refresh })
-    });
+    try {
+      const response = await fetch(`${API_BASE_URL}/auth/token/refresh/`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ refresh })
+      });
 
-    if (!response.ok) {
+      if (!response.ok) {
+        this.logout();
+        throw new Error('Refresh token expired');
+      }
+
+      const data = await response.json();
+      localStorage.setItem('access_token', data.access);
+      return data.access;
+    } catch (err) {
       this.logout();
-      throw new Error('Refresh token expired');
+      throw new Error('Connection lost. Please log in again.');
     }
-
-    const data = await response.json();
-    localStorage.setItem('access_token', data.access);
-    return data.access;
   }
 
   logout() {
@@ -56,10 +61,17 @@ class ApiService {
       headers['Content-Type'] = 'application/json';
     }
 
-    const response = await fetch(`${API_BASE_URL}${endpoint}`, {
-      ...options,
-      headers,
-    });
+    let response;
+    try {
+      response = await fetch(`${API_BASE_URL}${endpoint}`, {
+        ...options,
+        headers,
+      });
+    } catch (err: any) {
+      console.error('Fetch error:', err);
+      // This catches "Failed to fetch" (network errors)
+      throw new Error('Unable to connect to server. Please check your internet connection or try again later.');
+    }
 
     if (response.status === 401) {
       const refresh = localStorage.getItem('refresh_token');
@@ -96,15 +108,31 @@ class ApiService {
 
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
-      let errorMessage = 'API request failed';
-      if (errorData.error) errorMessage = errorData.error;
-      else if (errorData.detail) errorMessage = errorData.detail;
-      else if (typeof errorData === 'object') {
+      console.error('API Error Response:', errorData);
+
+      let errorMessage = 'An unexpected error occurred';
+      
+      if (errorData.error) {
+        errorMessage = errorData.error;
+      } else if (errorData.detail) {
+        errorMessage = errorData.detail;
+      } else if (errorData.message) {
+        errorMessage = errorData.message;
+      } else if (typeof errorData === 'object') {
+        // Handle DRF field errors (e.g. {"email": ["This field is required."]})
         const firstKey = Object.keys(errorData)[0];
-        if (firstKey && Array.isArray(errorData[firstKey])) {
-          errorMessage = `${firstKey}: ${errorData[firstKey][0]}`;
+        if (firstKey) {
+          const fieldError = errorData[firstKey];
+          if (Array.isArray(fieldError)) {
+            // "email: This field is required."
+            const fieldName = firstKey.charAt(0).toUpperCase() + firstKey.slice(1).replace('_', ' ');
+            errorMessage = `${fieldName}: ${fieldError[0]}`;
+          } else if (typeof fieldError === 'string') {
+            errorMessage = fieldError;
+          }
         }
       }
+      
       throw new Error(errorMessage);
     }
 
@@ -150,7 +178,6 @@ class ApiService {
   }
 
   async updateProfile(data: any) {
-    // If data contains a file, use FormData
     let body;
     if (data.profile_image instanceof File) {
       body = new FormData();

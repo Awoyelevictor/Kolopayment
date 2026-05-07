@@ -247,7 +247,19 @@ export function AuthFlow({ onComplete }: { onComplete: () => void }) {
                 <div className="mb-6">
                   <h1 className="text-2xl font-bold tracking-tight text-slate-900 mb-1.5">Create Account</h1>
                   <p className="text-slate-500 text-sm">Join the community and start saving.</p>
-                  {error && <p className="text-red-500 text-sm mt-2">{error}</p>}
+                  <AnimatePresence>
+                    {error && (
+                      <motion.div 
+                        initial={{ opacity: 0, height: 0, marginTop: 0 }}
+                        animate={{ opacity: 1, height: 'auto', marginTop: 12 }}
+                        exit={{ opacity: 0, height: 0, marginTop: 0 }}
+                        className="bg-red-50 text-red-600 p-3 rounded-xl text-xs font-semibold border border-red-100 flex items-center gap-2 overflow-hidden"
+                      >
+                        <div className="h-1.5 w-1.5 rounded-full bg-red-500 animate-pulse" />
+                        {error}
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
                 </div>
 
                 <div className="space-y-4 flex-1">
@@ -297,7 +309,19 @@ export function AuthFlow({ onComplete }: { onComplete: () => void }) {
                 <div className="mb-8">
                   <h1 className="text-2xl font-bold tracking-tight text-slate-900 mb-1.5">Welcome Back</h1>
                   <p className="text-slate-500 text-sm">Log in to manage your savings groups.</p>
-                  {error && <p className="text-red-500 text-sm mt-2">{error}</p>}
+                  <AnimatePresence>
+                    {error && (
+                      <motion.div 
+                        initial={{ opacity: 0, height: 0, marginTop: 0 }}
+                        animate={{ opacity: 1, height: 'auto', marginTop: 12 }}
+                        exit={{ opacity: 0, height: 0, marginTop: 0 }}
+                        className="bg-red-50 text-red-600 p-3 rounded-xl text-xs font-semibold border border-red-100 flex items-center gap-2 overflow-hidden"
+                      >
+                        <div className="h-1.5 w-1.5 rounded-full bg-red-500 animate-pulse" />
+                        {error}
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
                 </div>
 
                 <div className="space-y-4 flex-1">
@@ -337,7 +361,19 @@ export function AuthFlow({ onComplete }: { onComplete: () => void }) {
                 <div className="mb-8 text-center pt-2">
                   <h1 className="text-2xl font-bold tracking-tight text-slate-900 mb-2">Verify Your Identity</h1>
                   <p className="text-slate-500 text-sm px-4">We use BVN to verify your identity and keep your account secure.</p>
-                  {error && <p className="text-red-500 text-sm mt-2">{error}</p>}
+                  <AnimatePresence>
+                    {error && (
+                      <motion.div 
+                        initial={{ opacity: 0, height: 0, marginTop: 0 }}
+                        animate={{ opacity: 1, height: 'auto', marginTop: 12 }}
+                        exit={{ opacity: 0, height: 0, marginTop: 0 }}
+                        className="bg-red-50 text-red-600 p-3 rounded-xl text-xs font-semibold border border-red-100 flex items-center gap-2 overflow-hidden mx-auto max-w-[300px]"
+                      >
+                        <div className="h-1.5 w-1.5 rounded-full bg-red-500 animate-pulse" />
+                        {error}
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
                 </div>
 
                 <div className="space-y-4 flex-1">
