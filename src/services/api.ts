@@ -1,4 +1,6 @@
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8001/api';
+// Ensure the API URL doesn't have a trailing slash for consistency
+const rawApiUrl = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8001/api';
+const API_BASE_URL = rawApiUrl.endsWith('/') ? rawApiUrl.slice(0, -1) : rawApiUrl;
 
 class ApiService {
   private isRefreshing = false;
@@ -10,7 +12,7 @@ class ApiService {
   }
 
   private onTokenRefreshed(token: string) {
-    this.refreshSubscribers.map(cb => cb(token));
+    this.refreshSubscribers.forEach(cb => cb(token));
     this.refreshSubscribers = [];
   }
 
@@ -63,7 +65,9 @@ class ApiService {
 
     let response;
     try {
-      response = await fetch(`${API_BASE_URL}${endpoint}`, {
+      // Ensure endpoint starts with /
+      const path = endpoint.startsWith('/') ? endpoint : `/${endpoint}`;
+      response = await fetch(`${API_BASE_URL}${path}`, {
         ...options,
         headers,
       });
@@ -143,6 +147,11 @@ class ApiService {
       }
       
       throw new Error(errorMessage);
+    }
+
+    // Handle 204 No Content
+    if (response.status === 204) {
+      return null;
     }
 
     return response.json();
