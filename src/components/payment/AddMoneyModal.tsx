@@ -1,18 +1,52 @@
 import { motion, AnimatePresence } from 'motion/react';
-import { X, Building2, CreditCard, Copy, CheckCircle2 } from 'lucide-react';
-import { useState } from 'react';
+import { X, Building2, CreditCard, Copy, CheckCircle2, Loader2 } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { api } from '../../services/api';
 
 interface AddMoneyModalProps {
   isOpen: boolean;
   onClose: () => void;
 }
 
+interface VirtualAccount {
+  account_number: string;
+  bank_name: string;
+  account_name: string;
+}
+
 export function AddMoneyModal({ isOpen, onClose }: AddMoneyModalProps) {
   const [copied, setCopied] = useState(false);
+  const [account, setAccount] = useState<VirtualAccount | null>(null);
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    if (isOpen) {
+      fetchVirtualAccount();
+    }
+  }, [isOpen]);
+
+  const fetchVirtualAccount = async () => {
+    setLoading(true);
+    try {
+      const data = await api.getVirtualAccount();
+      setAccount(data);
+    } catch (err) {
+      console.error('Failed to fetch virtual account:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleCopy = () => {
+    if (!account) return;
+    navigator.clipboard.writeText(account.account_number);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
+  };
+
+  const handleCardTopup = () => {
+    // In a real Payaza integration, this would open the Checkout URL
+    alert("This will open Payaza Checkout for instant card payment.");
   };
 
   return (
@@ -55,38 +89,54 @@ export function AddMoneyModal({ isOpen, onClose }: AddMoneyModalProps) {
                     </div>
                     <div>
                       <h3 className="font-semibold text-slate-900 text-sm">Bank Transfer</h3>
-                      <p className="text-xs text-slate-500">Transfer directly to your wallet</p>
+                      <p className="text-xs text-slate-500">Payaza Dynamic Account</p>
                     </div>
                   </div>
                   
-                  <div className="bg-slate-50 p-3 rounded-xl border border-slate-100">
-                    <div className="flex justify-between items-center mb-1">
-                      <span className="text-xs text-slate-500">Wema Bank</span>
-                      <span className="text-xs font-medium text-slate-900">Goodluck E.</span>
+                  {loading ? (
+                    <div className="flex items-center justify-center py-6">
+                      <Loader2 className="animate-spin text-[#0052FF]" size={24} />
                     </div>
-                    <div className="flex justify-between items-center">
-                      <span className="font-mono font-bold text-slate-900 text-lg tracking-wider">0123456789</span>
-                      <button 
-                        onClick={handleCopy}
-                        className="flex items-center gap-1.5 text-xs font-semibold text-[#0052FF] bg-[#0052FF]/10 px-2 py-1 rounded-lg hover:bg-[#0052FF]/20 transition-colors"
-                      >
-                        {copied ? (
-                          <><CheckCircle2 size={14} /> Copied</>
-                        ) : (
-                          <><Copy size={14} /> Copy</>
-                        )}
-                      </button>
+                  ) : account ? (
+                    <div className="bg-slate-50 p-3 rounded-xl border border-slate-100">
+                      <div className="flex justify-between items-center mb-1">
+                        <span className="text-xs text-slate-500">{account.bank_name}</span>
+                        <span className="text-xs font-medium text-slate-900 truncate ml-2">{account.account_name}</span>
+                      </div>
+                      <div className="flex justify-between items-center">
+                        <span className="font-mono font-bold text-slate-900 text-lg tracking-wider">{account.account_number}</span>
+                        <button 
+                          onClick={handleCopy}
+                          className="flex items-center gap-1.5 text-xs font-semibold text-[#0052FF] bg-[#0052FF]/10 px-2 py-1 rounded-lg hover:bg-[#0052FF]/20 transition-colors"
+                        >
+                          {copied ? (
+                            <><CheckCircle2 size={14} /> Copied</>
+                          ) : (
+                            <><Copy size={14} /> Copy</>
+                          )}
+                        </button>
+                      </div>
                     </div>
+                  ) : (
+                    <p className="text-xs text-red-500 text-center py-2">Failed to load account details.</p>
+                  )}
+                  
+                  <div className="mt-3 flex items-center gap-1 text-[10px] text-slate-400">
+                    <CheckCircle2 size={10} className="text-green-500" />
+                    Powered by Payaza Staq
                   </div>
                 </div>
 
-                <button className="w-full bg-white/60 p-4 rounded-2xl border border-slate-100 shadow-sm flex items-center gap-3 hover:bg-white transition-colors group">
+                <button 
+                  onClick={handleCardTopup}
+                  className="w-full bg-white/60 p-4 rounded-2xl border border-slate-100 shadow-sm flex items-center gap-3 hover:bg-white transition-colors group"
+                >
                   <div className="h-10 w-10 bg-slate-50 group-hover:bg-blue-50 group-hover:text-[#0052FF] text-slate-600 rounded-full flex items-center justify-center transition-colors">
                     <CreditCard size={20} />
                   </div>
                   <div className="flex-1 text-left">
                     <h3 className="font-semibold text-slate-900 text-sm group-hover:text-[#0052FF] transition-colors">Top up with Card</h3>
-                    <p className="text-xs text-slate-500">Instant top up using debit card</p>
+                    <p className="text-xs text-slate-500">Payaza Checkout</p>
                   </div>
                 </button>
               </div>

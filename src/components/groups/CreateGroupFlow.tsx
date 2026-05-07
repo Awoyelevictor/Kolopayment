@@ -69,7 +69,7 @@ export function CreateGroupFlow() {
           <div className="w-8" />
         </div>
 
-        <div className="flex-1 flex flex-col relative overflow-hidden px-6 pb-8">
+        <div className="flex-1 flex flex-col relative overflow-y-auto hide-scrollbar px-6 pb-8">
           {error && (
             <div className="mt-4 p-3 bg-red-50 text-red-600 rounded-xl text-xs font-medium border border-red-100 animate-shake">
               {error}
@@ -84,7 +84,7 @@ export function CreateGroupFlow() {
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, x: -20 }}
                 transition={{ duration: 0.3 }}
-                className="flex-1 flex flex-col absolute inset-0 px-6 pt-6"
+                className="w-full flex flex-col pt-6"
               >
                 <div className="mb-8">
                   <h1 className="text-2xl font-bold tracking-tight text-slate-900 mb-2">Name your Ajo</h1>
@@ -127,7 +127,7 @@ export function CreateGroupFlow() {
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, x: -20 }}
                 transition={{ duration: 0.3 }}
-                className="flex-1 flex flex-col absolute inset-0 px-6 pt-6"
+                className="w-full flex flex-col pt-6"
               >
                 <div className="mb-8">
                   <h1 className="text-2xl font-bold tracking-tight text-slate-900 mb-2">Contribution Details</h1>
@@ -189,7 +189,7 @@ export function CreateGroupFlow() {
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, x: -20 }}
                 transition={{ duration: 0.3 }}
-                className="flex-1 flex flex-col absolute inset-0 px-6 pt-6"
+                className="w-full flex flex-col pt-6"
               >
                 <div className="mb-8">
                   <h1 className="text-2xl font-bold tracking-tight text-slate-900 mb-2">Review & Create</h1>

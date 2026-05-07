@@ -1,4 +1,4 @@
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000/api';
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8001/api';
 
 class ApiService {
   private isRefreshing = false;
@@ -241,6 +241,12 @@ class ApiService {
 
   async getContributions() {
     return this.request('/payments/contributions/', {
+      method: 'GET'
+    });
+  }
+
+  async getVirtualAccount() {
+    return this.request('/payments/virtual-account/', {
       method: 'GET'
     });
   }

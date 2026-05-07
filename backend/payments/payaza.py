@@ -17,8 +17,7 @@ class PayazaService:
 
     def initiate_payment(self, amount, email, first_name, last_name, phone_number, callback_url):
         """
-        Initiates a payment request via Payaza.
-        Reference: https://docs.payaza.africa
+        Initiates a payment request via Payaza Checkout.
         """
         transaction_ref = f"KOLO-{uuid.uuid4().hex[:10].upper()}"
         
@@ -36,12 +35,9 @@ class PayazaService:
         }
 
         try:
-            # Note: The actual endpoint might differ based on the integration method (Checkout vs Server-to-Server)
-            # This is a generalized structure for server-side initiation.
             endpoint = f"{self.base_url}/checkout/initialize"
             
-            # If using test keys, we might want to skip the actual network call or handle it gracefully
-            if "test_key" in self.api_key:
+            if "test_key" in self.api_key or "test_api_key" in self.api_key:
                 logger.info(f"Simulating Payaza payment initiation for {transaction_ref}")
                 return {
                     "status": "success",
@@ -56,16 +52,53 @@ class PayazaService:
             logger.error(f"Payaza payment initiation failed: {str(e)}")
             return None
 
-    def verify_payment(self, transaction_ref):
+    def create_reserved_account(self, user):
         """
-        Verifies a transaction status.
+        Creates a dynamic virtual account for the user.
+        API: POST /virtual-account/create
         """
-        endpoint = f"{self.base_url}/transaction/verify/{transaction_ref}"
-        
-        try:
-            if "test_key" in self.api_key:
-                return {"status": "success", "message": "Transaction verified (Simulated)"}
+        payload = {
+            "application_id": self.merchant_id,
+            "customer_first_name": user.first_name or user.username,
+            "customer_last_name": user.last_name or "KoloUser",
+            "customer_email": user.email or f"{user.username}@kolopay.africa",
+            "customer_phone": user.phone_number,
+            "account_name": f"KoloPay - {user.first_name} {user.last_name}".strip()
+        }
 
+        try:
+            endpoint = f"{self.base_url}/virtual-account/create"
+            
+            if "test_key" in self.api_key or "test_api_key" in self.api_key:
+                logger.info(f"Simulating Payaza virtual account creation for {user.username}")
+                return {
+                    "status": "success",
+                    "account_number": "0123456789",
+                    "bank_name": "Wema Bank",
+                    "account_name": payload["account_name"]
+                }
+
+            response = requests.post(endpoint, json=payload, headers=self.headers)
+            response.raise_for_status()
+            data = response.json()
+            
+            # Payaza response usually contains account details in a specific nested object
+            # For this integration, we extract the key fields
+            return {
+                "status": "success",
+                "account_number": data.get('account_number'),
+                "bank_name": data.get('bank_name'),
+                "account_name": data.get('account_name')
+            }
+        except Exception as e:
+            logger.error(f"Payaza virtual account creation failed: {str(e)}")
+            return None
+
+    def verify_payment(self, transaction_ref):
+        endpoint = f"{self.base_url}/transaction/verify/{transaction_ref}"
+        try:
+            if "test_key" in self.api_key or "test_api_key" in self.api_key:
+                return {"status": "success", "message": "Transaction verified (Simulated)"}
             response = requests.get(endpoint, headers=self.headers)
             response.raise_for_status()
             return response.json()

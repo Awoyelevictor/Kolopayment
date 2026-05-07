@@ -64,6 +64,31 @@ class ProcessPaymentView(views.APIView):
             "payaza_data": payment_result
         })
 
+class GetVirtualAccountView(views.APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        user = request.user
+        
+        # If user already has an account, return it
+        if user.payaza_account_number:
+            return Response({
+                "account_number": user.payaza_account_number,
+                "bank_name": user.payaza_bank_name,
+                "account_name": user.payaza_account_name
+            })
+            
+        # Otherwise create one via Payaza
+        result = payaza_service.create_reserved_account(user)
+        if result and result.get('account_number'):
+            user.payaza_account_number = result['account_number']
+            user.payaza_bank_name = result['bank_name']
+            user.payaza_account_name = result['account_name']
+            user.save()
+            return Response(result)
+            
+        return Response({"error": "Failed to generate virtual account."}, status=status.HTTP_503_SERVICE_UNAVAILABLE)
+
 class PayoutViewSet(viewsets.ReadOnlyModelViewSet):
     permission_classes = [IsAuthenticated]
     serializer_class = PayoutSerializer
