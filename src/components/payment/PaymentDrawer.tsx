@@ -142,9 +142,13 @@ export function PaymentDrawer() {
         // Fallback for demo
         navigate('payment-success');
       }
-    } catch (err) {
+    } catch (err: any) {
       console.error("Payaza Init Error:", err);
-      alert("Failed to initialize payment. Please try again.");
+      if (err.response?.status === 403) {
+        alert("Not authorized. Please check your Payaza API keys.");
+      } else {
+        alert("Failed to initialize payment. Please try again.");
+      }
     } finally {
       setIsPaying(false);
     }
@@ -170,9 +174,13 @@ export function PaymentDrawer() {
           bankName: data.bank_name || data.bankName || 'Payaza Bank'
         });
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Virtual Account Error:', error);
-      alert('Failed to generate Payaza virtual account.');
+      if (error.response?.status === 403) {
+        alert("Not authorized. Please check your Payaza API keys.");
+      } else {
+        alert('Failed to generate Payaza virtual account.');
+      }
       setView('options');
     } finally {
       setIsLoading(false);
