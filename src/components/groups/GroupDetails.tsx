@@ -86,7 +86,7 @@ export function GroupDetails() {
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-2xl font-bold tracking-tight text-slate-900 mb-1">{group.name}</h1>
-            <p className="text-xs font-medium text-slate-500">Group ID: #{group.id?.substring(0, 6).toUpperCase()} <span className="inline-block ml-1 opacity-50 cursor-pointer hover:opacity-100" onClick={() => navigator.clipboard.writeText(group.joinCode)}>📋</span></p>
+            <p className="text-xs font-medium text-slate-500">Group ID: #{group.joinCode} <span className="inline-block ml-1 opacity-50 cursor-pointer hover:opacity-100" onClick={() => navigator.clipboard.writeText(group.joinCode)}>📋</span></p>
           </div>
           <div className={`px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wide ${group.status === 'active' ? 'bg-[#22C55E]/10 text-[#22C55E]' : 'bg-slate-100 text-slate-500'}`}>
             {group.status}

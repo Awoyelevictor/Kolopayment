@@ -35,7 +35,7 @@ export function CreateGroupFlow() {
         ...formData,
         adminId: user.uid,
         status: 'active',
-        joinCode: Math.random().toString(36).substring(2, 8).toUpperCase(),
+        joinCode: Math.floor(100000 + Math.random() * 900000).toString(),
         createdAt: serverTimestamp()
       });
 

@@ -29,7 +29,7 @@ export function JoinGroupModal() {
       setError(null);
       try {
         // 1. Search for group with this join code
-        const q = query(collection(db, 'groups'), where('joinCode', '==', code.toUpperCase()));
+        const q = query(collection(db, 'groups'), where('joinCode', '==', code));
         const snapshot = await getDocs(q);
         
         if (snapshot.empty) {
