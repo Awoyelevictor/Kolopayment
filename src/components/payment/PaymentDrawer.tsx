@@ -320,7 +320,7 @@ export function PaymentDrawer() {
                       {isPaying ? <Loader2 className="animate-spin" size={20} /> : <CreditCard size={20} />}
                     </div>
                     <div className="text-left flex-1">
-                      <h4 className="font-semibold text-slate-900 text-sm">Paystack / Card</h4>
+                      <h4 className="font-semibold text-slate-900 text-sm">Payaza / Card</h4>
                       <p className="text-xs text-slate-500 mt-0.5">Pay securely via card or USSD</p>
                     </div>
                     <ChevronRight size={18} className="text-slate-300" />
