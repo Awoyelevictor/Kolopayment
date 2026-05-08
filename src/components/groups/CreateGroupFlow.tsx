@@ -1,17 +1,68 @@
-import { ArrowLeft, Check } from 'lucide-react';
+import { ArrowLeft, Check, Loader2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { useState } from 'react';
 import { useNavigation } from '../../contexts/NavigationContext';
+import { db, handleFirestoreError, OperationType } from '../../lib/firebase';
+import { useFirebase } from '../../context/FirebaseContext';
+import { collection, addDoc, serverTimestamp, setDoc, doc } from 'firebase/firestore';
 
 export function CreateGroupFlow() {
   const { navigate, goBackTo } = useNavigation();
+  const { user } = useFirebase();
   const [step, setStep] = useState(1);
+  const [isLoading, setIsLoading] = useState(false);
   const totalSteps = 3;
+
+  const [formData, setFormData] = useState({
+    name: '',
+    amount: 5000,
+    cycle: 'weekly',
+    maxMembers: 10,
+    description: ''
+  });
 
   const nextStep = () => setStep(s => Math.min(s + 1, totalSteps));
   const prevStep = () => {
     if (step > 1) setStep(s => s - 1);
     else navigate(goBackTo || 'home');
+  };
+
+  const handleCreateGroup = async () => {
+    if (!user) return;
+    setIsLoading(true);
+    try {
+      const gDoc = await addDoc(collection(db, 'groups'), {
+        ...formData,
+        adminId: user.uid,
+        status: 'active',
+        joinCode: Math.random().toString(36).substring(2, 8).toUpperCase(),
+        createdAt: serverTimestamp()
+      });
+
+      // Add admin as first member
+      await setDoc(doc(db, 'groups', gDoc.id, 'members', user.uid), {
+        uid: user.uid,
+        joinedAt: serverTimestamp(),
+        position: 1,
+        status: 'active'
+      });
+
+      // Add to user memberships for easy querying
+      await setDoc(doc(db, 'users', user.uid, 'memberships', gDoc.id), {
+        groupId: gDoc.id,
+        name: formData.name,
+        amount: formData.amount,
+        cycle: formData.cycle,
+        maxMembers: formData.maxMembers,
+        joinedAt: serverTimestamp()
+      });
+
+      navigate('group-details', { groupId: gDoc.id });
+    } catch (error) {
+      handleFirestoreError(error, OperationType.CREATE, 'groups');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -56,6 +107,8 @@ export function CreateGroupFlow() {
                   <input 
                     type="text" 
                     placeholder="e.g. CS Dept Ajo 2024" 
+                    value={formData.name}
+                    onChange={(e) => setFormData({...formData, name: e.target.value})}
                     className="w-full px-4 py-4 bg-slate-50 border border-slate-200 rounded-2xl outline-none focus:border-[#0052FF] focus:bg-white transition-colors text-slate-900 font-medium" 
                     autoFocus
                   />
@@ -91,6 +144,8 @@ export function CreateGroupFlow() {
                       <input 
                         type="number" 
                         placeholder="5000" 
+                        value={formData.amount}
+                        onChange={(e) => setFormData({...formData, amount: Number(e.target.value)})}
                         className="w-full pl-10 pr-4 py-4 bg-slate-50 border border-slate-200 rounded-2xl outline-none focus:border-[#0052FF] focus:bg-white transition-colors text-slate-900 font-medium text-lg" 
                         autoFocus
                       />
@@ -102,7 +157,8 @@ export function CreateGroupFlow() {
                       {['Daily', 'Weekly', 'Monthly'].map(freq => (
                         <button 
                           key={freq}
-                          className={`py-3.5 rounded-xl border font-medium text-sm transition-colors ${freq === 'Weekly' ? 'border-[#0052FF] bg-blue-50 text-[#0052FF]' : 'border-slate-200 bg-white text-slate-600 hover:bg-slate-50'}`}
+                          onClick={() => setFormData({...formData, cycle: freq.toLowerCase()})}
+                          className={`py-3.5 rounded-xl border font-medium text-sm transition-colors ${formData.cycle === freq.toLowerCase() ? 'border-[#0052FF] bg-blue-50 text-[#0052FF]' : 'border-slate-200 bg-white text-slate-600 hover:bg-slate-50'}`}
                         >
                           {freq}
                         </button>
@@ -152,10 +208,11 @@ export function CreateGroupFlow() {
                 </div>
                 <motion.button 
                   whileTap={{ scale: 0.98 }}
-                  onClick={() => navigate('group-details')}
-                  className="w-full bg-[#0052FF] text-white font-semibold py-4 rounded-2xl mt-6 shadow-lg shadow-blue-500/30"
+                  disabled={isLoading}
+                  onClick={handleCreateGroup}
+                  className="w-full bg-[#0052FF] text-white font-semibold py-4 rounded-2xl mt-6 shadow-lg shadow-blue-500/30 flex items-center justify-center gap-2"
                 >
-                  Create Group
+                  {isLoading ? <Loader2 className="animate-spin" size={20} /> : 'Create Group'}
                 </motion.button>
               </motion.div>
             )}

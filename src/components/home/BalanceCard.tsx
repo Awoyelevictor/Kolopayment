@@ -2,10 +2,18 @@ import { Eye, EyeOff, Plus } from 'lucide-react';
 import { motion } from 'motion/react';
 import { useState } from 'react';
 import { AddMoneyModal } from '../payment/AddMoneyModal';
+import { useFirebase } from '../../context/FirebaseContext';
 
 export function BalanceCard() {
+  const { userProfile } = useFirebase();
   const [isVisible, setIsVisible] = useState(true);
   const [isAddMoneyOpen, setIsAddMoneyOpen] = useState(false);
+
+  const balance = userProfile?.walletBalance || 0;
+  const formattedBalance = new Intl.NumberFormat('en-NG', {
+    style: 'currency',
+    currency: 'NGN'
+  }).format(balance);
 
   return (
     <>
@@ -31,15 +39,15 @@ export function BalanceCard() {
           
           <div className="mb-6">
             <h2 className={`text-4xl font-bold tracking-tight mb-1 transition-all duration-300 ${isVisible ? '' : 'blur-md select-none opacity-80'}`}>
-              ₦52,600.00
+              {formattedBalance}
             </h2>
           </div>
 
           <div className="flex items-center justify-between pt-5 border-t border-white/15">
             <div>
-              <p className="text-white/70 text-xs font-medium mb-1">Available Balance</p>
+              <p className="text-white/70 text-xs font-medium mb-1">Available to Withdraw</p>
               <p className={`font-semibold text-lg tracking-tight transition-all duration-300 ${isVisible ? '' : 'blur-md select-none opacity-80'}`}>
-                ₦12,600.00
+                {formattedBalance}
               </p>
             </div>
             

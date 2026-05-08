@@ -1,0 +1,101 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Default deny
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // --- Helpers ---
+    function isSignedIn() {
+      return request.auth != null;
+    }
+    
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    // --- Entity Validations ---
+
+    function isValidUser(data) {
+      return data.firstName is string && data.firstName.size() <= 50 &&
+             data.lastName is string && data.lastName.size() <= 50 &&
+             data.email is string && data.email.size() <= 100 &&
+             data.walletBalance is number && data.walletBalance >= 0;
+    }
+
+    function isValidGroup(data) {
+      return data.name is string && data.name.size() <= 100 &&
+             data.amount is number && data.amount > 0 &&
+             data.adminId == request.auth.uid &&
+             data.status in ['draft', 'active', 'completed'];
+    }
+
+    function isValidMember(data) {
+      return data.userId is string && data.userId.size() <= 128;
+    }
+
+    // --- Collections ---
+
+    match /users/{userId} {
+      allow get: if isOwner(userId);
+      allow list: if false; // Users shouldn't be listable by others
+      allow create: if isOwner(userId) && isValidUser(incoming()) && incoming().createdAt == request.time;
+      allow update: if isOwner(userId) && isValidUser(incoming()) && (
+        // Only allow updating profile info, wallet balance should be handled carefully
+        incoming().diff(existing()).affectedKeys().hasOnly(['firstName', 'lastName', 'phone', 'isVerified', 'bvn', 'walletBalance', 'updatedAt'])
+      );
+    }
+
+    match /groups/{groupId} {
+      allow get: if isSignedIn();
+      allow list: if isSignedIn() && (resource.data.adminId == request.auth.uid || resource.data.isPublic == true);
+      allow create: if isSignedIn() && isValidGroup(incoming()) && incoming().createdAt == request.time;
+      allow update: if isSignedIn() && (
+        isGroupAdmin(groupId) || isGroupMember(groupId)
+      ) && isValidGroup(incoming());
+    }
+
+    match /groups/{groupId}/members/{memberId} {
+      allow read: if isSignedIn() && (isGroupMember(groupId) || isGroupAdmin(groupId));
+      allow create: if isSignedIn() && isValidId(memberId) && isValidMember(incoming());
+      allow update: if isSignedIn() && isGroupAdmin(groupId);
+    }
+
+    match /transactions/{txId} {
+      allow get: if isSignedIn() && existing().userId == request.auth.uid;
+      allow list: if isSignedIn() && resource.data.userId == request.auth.uid;
+      allow create: if isSignedIn() && incoming().userId == request.auth.uid && incoming().timestamp == request.time;
+      allow update, delete: if false; // Transactions are immutable
+    }
+
+    match /notifications/{notifId} {
+      allow read: if isSignedIn() && resource.data.userId == request.auth.uid;
+      allow create: if false; // System only (or managed via server proxy if needed)
+      allow update: if isSignedIn() && isOwner(existing().userId) && incoming().diff(existing()).affectedKeys().hasOnly(['read']);
+      allow delete: if isSignedIn() && isOwner(existing().userId);
+    }
+
+    // --- Relational Helpers ---
+    function isGroupAdmin(groupId) {
+      return get(/databases/$(database)/documents/groups/$(groupId)).data.adminId == request.auth.uid;
+    }
+    
+    function isGroupMember(groupId) {
+      return exists(/databases/$(database)/documents/groups/$(groupId)/members/$(request.auth.uid));
+    }
+  }
+}

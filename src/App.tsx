@@ -22,6 +22,7 @@ import { PaymentDrawer } from './components/payment/PaymentDrawer';
 import { PaymentSuccess } from './components/payment/PaymentSuccess';
 import { NavigationProvider, useNavigation } from './contexts/NavigationContext';
 import { AnimatePresence, motion } from 'motion/react';
+import { FirebaseProvider, useFirebase } from './context/FirebaseContext';
 
 function AppContent() {
   const { currentRoute } = useNavigation();
@@ -57,10 +58,31 @@ function AppContent() {
 }
 
 export default function App() {
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  return (
+    <FirebaseProvider>
+      <AppAuthGate />
+    </FirebaseProvider>
+  );
+}
 
-  if (!isAuthenticated) {
-    return <AuthFlow onComplete={() => setIsAuthenticated(true)} />;
+function AppAuthGate() {
+  const { user, loading } = useFirebase();
+
+  if (loading) {
+    return (
+      <div className="h-screen w-full flex items-center justify-center bg-white">
+        <motion.div 
+          animate={{ scale: [1, 1.1, 1] }}
+          transition={{ repeat: Infinity, duration: 1.5 }}
+        >
+          <img src="/logo.svg" alt="KoloPay" className="w-16 h-16" />
+        </motion.div>
+      </div>
+    );
+  }
+
+  if (!user) {
+    return <AuthFlow onComplete={() => {}} />;
   }
 
   return (

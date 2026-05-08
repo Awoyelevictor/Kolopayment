@@ -1,28 +1,51 @@
-import { Plus, ShieldCheck, ShieldAlert, Star } from 'lucide-react';
+import { Plus, ShieldCheck, ShieldAlert, Star, Loader2 } from 'lucide-react';
 import { motion } from 'motion/react';
+import { useState, useEffect } from 'react';
+import { collection, onSnapshot } from 'firebase/firestore';
+import { db } from '../../../lib/firebase';
+import { useFirebase } from '../../../context/FirebaseContext';
 
-export function MembersTab() {
-  const members = [
-    { id: 1, name: 'Sarah A.', role: 'Admin', isYou: false, isVerified: true, position: 1, trustScore: 5 },
-    { id: 2, name: 'Goodluck E.', role: 'Member', isYou: true, isVerified: true, position: 3, trustScore: 4.5 },
-    { id: 3, name: 'Daniel K.', role: 'Member', isYou: false, isVerified: true, position: 2, trustScore: 4 },
-    { id: 4, name: 'Mary U.', role: 'Member', isYou: false, isVerified: true, position: 7, trustScore: 5 },
-    { id: 5, name: 'John O.', role: 'Member', isYou: false, isVerified: false, position: 8, trustScore: 3 },
-  ];
+export function MembersTab({ group }: { group: any }) {
+  const { user } = useFirebase();
+  const [members, setMembers] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
-  const renderStars = (score: number) => {
+  useEffect(() => {
+    if (!group) return;
+
+    const unsubscribe = onSnapshot(collection(db, 'groups', group.id, 'members'), (snapshot) => {
+      const m = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      setMembers(m);
+      setIsLoading(false);
+    }, (error) => {
+      console.error("Members fetch error:", error);
+      setIsLoading(false);
+    });
+
+    return () => unsubscribe();
+  }, [group]);
+
+  const renderStars = (score: number = 5) => {
     return (
       <div className="flex items-center gap-0.5">
         {[1, 2, 3, 4, 5].map((star) => (
           <Star 
             key={star} 
             size={12} 
-            className={star <= score ? "text-amber-400 fill-amber-400" : (star - 0.5 === score ? "text-amber-400 fill-amber-400 opacity-50" : "text-slate-200")} 
+            className={star <= score ? "text-amber-400 fill-amber-400" : "text-slate-200"} 
           />
         ))}
       </div>
     );
   };
+
+  if (isLoading) {
+    return (
+      <div className="flex justify-center py-12">
+        <Loader2 className="animate-spin text-[#0052FF]" size={32} />
+      </div>
+    );
+  }
 
   return (
     <div className="bg-white rounded-3xl border border-slate-100 shadow-sm overflow-hidden">
@@ -39,9 +62,9 @@ export function MembersTab() {
               <div className="w-6 text-center text-xs font-semibold text-slate-400">
                 {idx + 1}
               </div>
-              <div className="h-10 w-10 bg-slate-100 rounded-full flex items-center justify-center font-bold text-slate-600 text-sm shadow-inner relative">
-                {member.name.charAt(0)}
-                {member.role === 'Admin' && (
+              <div className="h-10 w-10 bg-[#0052FF]/10 text-[#0052FF] rounded-full flex items-center justify-center font-bold text-sm shadow-inner relative">
+                U
+                {member.uid === group.adminId && (
                   <div className="absolute -bottom-1 -right-1 bg-[#0052FF] text-white text-[8px] px-1 rounded-sm font-bold shadow-sm">
                     A
                   </div>
@@ -49,17 +72,13 @@ export function MembersTab() {
               </div>
               <div>
                 <p className="font-semibold text-sm text-slate-900 flex items-center gap-1.5">
-                  {member.name} 
-                  {member.isYou && <span className="text-[10px] text-slate-400 font-normal">(You)</span>}
-                  {member.isVerified ? (
-                    <ShieldCheck size={14} className="text-emerald-500" />
-                  ) : (
-                    <ShieldAlert size={14} className="text-red-400" />
-                  )}
+                  UID: {member.uid?.substring(0, 5)} 
+                  {member.uid === user?.uid && <span className="text-[10px] text-slate-400 font-normal">(You)</span>}
+                  <ShieldCheck size={14} className="text-emerald-500" />
                 </p>
                 <div className="flex items-center gap-1.5 mt-0.5">
-                  {renderStars(member.trustScore)}
-                  <span className="text-[10px] text-slate-500 font-medium">{member.trustScore}</span>
+                  {renderStars(5)}
+                  <span className="text-[10px] text-slate-500 font-medium">5.0</span>
                 </div>
               </div>
             </div>
@@ -75,9 +94,10 @@ export function MembersTab() {
       <div className="p-4 bg-slate-50/50">
         <motion.button 
           whileTap={{ scale: 0.98 }}
+          onClick={() => navigator.clipboard.writeText(group.joinCode)}
           className="w-full bg-white border border-dashed border-slate-300 text-[#0052FF] font-semibold py-3.5 rounded-2xl flex items-center justify-center gap-2 hover:bg-[#0052FF]/5 hover:border-[#0052FF]/30 transition-colors shadow-sm"
         >
-          <Plus size={18} /> Invite Member
+          <Plus size={18} /> Invite (Copy Code: {group.joinCode})
         </motion.button>
       </div>
     </div>

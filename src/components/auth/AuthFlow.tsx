@@ -1,12 +1,72 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { Check, ArrowLeft, ShieldCheck, Mail, Lock, User, Phone, Users, Wallet, TrendingUp } from 'lucide-react';
+import { Check, ArrowLeft, ShieldCheck, Mail, Lock, User, Phone, Users, Wallet, TrendingUp, Loader2 } from 'lucide-react';
 import { Logo } from '../common/Logo';
+import { payazaService } from '../../services/payazaService';
+import { auth, db, handleFirestoreError, OperationType } from '../../lib/firebase';
+import { createUserWithEmailAndPassword, signInWithEmailAndPassword } from 'firebase/auth';
+import { doc, setDoc, serverTimestamp } from 'firebase/firestore';
 
 type Step = 'intro' | 'welcome' | 'create' | 'login' | 'bvn' | 'success';
 
 export function AuthFlow({ onComplete }: { onComplete: () => void }) {
   const [step, setStep] = useState<Step>('intro');
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  // Form states
+  const [formData, setFormData] = useState({
+    firstName: '',
+    lastName: '',
+    phone: '',
+    email: '',
+    password: '',
+    bvn: ''
+  });
+
+  const handleDemoLogin = async () => {
+    setIsLoading(true);
+    setError(null);
+    try {
+      // Demo credentials
+      await signInWithEmailAndPassword(auth, 'demo@kolopay.com', 'password123');
+      onComplete();
+    } catch (err: any) {
+      // If demo account doesn't exist, create it for the first time
+      if (err.code === 'auth/user-not-found') {
+        try {
+          const userCredential = await createUserWithEmailAndPassword(auth, 'demo@kolopay.com', 'password123');
+          const user = userCredential.user;
+          await setDoc(doc(db, 'users', user.uid), {
+            firstName: 'Demo',
+            lastName: 'User',
+            email: 'demo@kolopay.com',
+            phone: '+234 800 000 0000',
+            walletBalance: 25000,
+            isVerified: true,
+            createdAt: serverTimestamp(),
+            updatedAt: serverTimestamp()
+          });
+          onComplete();
+        } catch (createErr: any) {
+          console.error('Demo Creation Error:', createErr);
+          if (createErr.code === 'auth/operation-not-allowed') {
+            setError('Email login is disabled in Firebase Console.');
+          } else {
+            setError('Failed to initialize demo account');
+          }
+        }
+      } else {
+        let message = err.message || 'Demo login failed';
+        if (err.code === 'auth/operation-not-allowed') {
+          message = 'Email login is disabled. Please enable it in the Firebase Console.';
+        }
+        setError(message);
+      }
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   useEffect(() => {
     if (step === 'intro') {
@@ -16,6 +76,125 @@ export function AuthFlow({ onComplete }: { onComplete: () => void }) {
       return () => clearTimeout(timer);
     }
   }, [step]);
+
+  const handleSignUp = async () => {
+    if (!formData.email || !formData.password || !formData.firstName || !formData.lastName) {
+      setError('Please fill in all required fields');
+      return;
+    }
+
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      // 1. Create Auth User
+      const userCredential = await createUserWithEmailAndPassword(auth, formData.email, formData.password);
+      const user = userCredential.user;
+
+      // 2. Create Firestore Profile
+      const userProfile = {
+        firstName: formData.firstName,
+        lastName: formData.lastName,
+        email: formData.email,
+        phone: formData.phone,
+        walletBalance: 0,
+        isVerified: false,
+        createdAt: serverTimestamp(),
+        updatedAt: serverTimestamp()
+      };
+
+      try {
+        await setDoc(doc(db, 'users', user.uid), userProfile);
+        setStep('bvn');
+      } catch (err) {
+        handleFirestoreError(err, OperationType.WRITE, `users/${user.uid}`);
+      }
+    } catch (err: any) {
+      console.error('Signup Error:', err);
+      let message = err.message || 'Signup failed';
+      if (err.code === 'auth/operation-not-allowed') {
+        message = 'Email signup is disabled. Please enable "Email/Password" in your Firebase Authentication settings.';
+      } else if (err.code === 'auth/network-request-failed') {
+        message = 'Connection failed. Please check your internet or disable ad-blockers.';
+      }
+      setError(message);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleLogin = async () => {
+    if (!formData.email || !formData.password) {
+      setError('Please enter your email and password');
+      return;
+    }
+
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      await signInWithEmailAndPassword(auth, formData.email, formData.password);
+      // FirebaseContext listener will handle the app redirect
+      onComplete();
+    } catch (err: any) {
+      console.error('Login Error:', err);
+      let message = err.message || 'Login failed';
+      if (err.code === 'auth/operation-not-allowed') {
+        message = 'Email login is disabled. Please enable "Email/Password" in your Firebase Authentication settings.';
+      } else if (err.code === 'auth/network-request-failed') {
+        message = 'Connection failed. Please check your internet or disable ad-blockers.';
+      }
+      setError(message);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleVerifyBvn = async () => {
+    if (!formData.bvn) {
+      setError('Please enter your BVN');
+      return;
+    }
+
+    const currentUser = auth.currentUser;
+    if (!currentUser) {
+      setError('Session expired. Please log in again.');
+      setStep('login');
+      return;
+    }
+
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      // Real Payaza BVN Verification Call
+      const result = await payazaService.verifyBvn({
+        bvn: formData.bvn,
+        firstName: formData.firstName,
+        lastName: formData.lastName
+      });
+
+      console.log('BVN Verification Result:', result);
+
+      // Update Firestore with verification status
+      try {
+        await setDoc(doc(db, 'users', currentUser.uid), {
+          bvn: formData.bvn,
+          isVerified: true,
+          updatedAt: serverTimestamp()
+        }, { merge: true });
+        
+        setStep('success');
+      } catch (err) {
+        handleFirestoreError(err, OperationType.UPDATE, `users/${currentUser.uid}`);
+      }
+    } catch (err: any) {
+      console.error('BVN Verification Error:', err);
+      setError(err.response?.data?.message || 'Verification failed. Please check your BVN.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const goBack = () => {
     if (step === 'create' || step === 'login') setStep('welcome');
@@ -222,35 +401,72 @@ export function AuthFlow({ onComplete }: { onComplete: () => void }) {
                 </div>
 
                 <div className="space-y-4 flex-1">
-                  <div className="relative">
-                    <User className="absolute left-4 top-4 text-slate-400" size={20} />
-                    <input type="text" placeholder="Full Name" className="w-full pl-12 pr-4 py-3.5 bg-slate-50 border border-slate-200 rounded-2xl outline-none focus:border-[#0052FF] focus:bg-white transition-colors" />
+                  <div className="flex gap-4">
+                    <div className="relative flex-1">
+                      <User className="absolute left-4 top-4 text-slate-400" size={20} />
+                      <input 
+                        type="text" 
+                        placeholder="First Name" 
+                        value={formData.firstName}
+                        onChange={(e) => setFormData({...formData, firstName: e.target.value})}
+                        className="w-full pl-12 pr-4 py-3.5 bg-slate-50 border border-slate-200 rounded-2xl outline-none focus:border-[#0052FF] focus:bg-white transition-colors" 
+                      />
+                    </div>
+                    <div className="relative flex-1">
+                      <input 
+                        type="text" 
+                        placeholder="Last Name" 
+                        value={formData.lastName}
+                        onChange={(e) => setFormData({...formData, lastName: e.target.value})}
+                        className="w-full px-4 py-3.5 bg-slate-50 border border-slate-200 rounded-2xl outline-none focus:border-[#0052FF] focus:bg-white transition-colors" 
+                      />
+                    </div>
                   </div>
                   <div className="relative">
                     <Phone className="absolute left-4 top-4 text-slate-400" size={20} />
-                    <input type="tel" placeholder="Phone Number" className="w-full pl-12 pr-4 py-3.5 bg-slate-50 border border-slate-200 rounded-2xl outline-none focus:border-[#0052FF] focus:bg-white transition-colors" />
+                    <input 
+                      type="tel" 
+                      placeholder="Phone Number" 
+                      value={formData.phone}
+                      onChange={(e) => setFormData({...formData, phone: e.target.value})}
+                      className="w-full pl-12 pr-4 py-3.5 bg-slate-50 border border-slate-200 rounded-2xl outline-none focus:border-[#0052FF] focus:bg-white transition-colors" 
+                    />
                   </div>
                   <div className="relative">
                     <Mail className="absolute left-4 top-4 text-slate-400" size={20} />
-                    <input type="email" placeholder="Email Address" className="w-full pl-12 pr-4 py-3.5 bg-slate-50 border border-slate-200 rounded-2xl outline-none focus:border-[#0052FF] focus:bg-white transition-colors" />
+                    <input 
+                      type="email" 
+                      placeholder="Email Address" 
+                      value={formData.email}
+                      onChange={(e) => setFormData({...formData, email: e.target.value})}
+                      className="w-full pl-12 pr-4 py-3.5 bg-slate-50 border border-slate-200 rounded-2xl outline-none focus:border-[#0052FF] focus:bg-white transition-colors" 
+                    />
                   </div>
                   <div className="relative">
                     <Lock className="absolute left-4 top-4 text-slate-400" size={20} />
-                    <input type="password" placeholder="Create Password" className="w-full pl-12 pr-4 py-3.5 bg-slate-50 border border-slate-200 rounded-2xl outline-none focus:border-[#0052FF] focus:bg-white transition-colors" />
+                    <input 
+                      type="password" 
+                      placeholder="Create Password" 
+                      value={formData.password}
+                      onChange={(e) => setFormData({...formData, password: e.target.value})}
+                      className="w-full pl-12 pr-4 py-3.5 bg-slate-50 border border-slate-200 rounded-2xl outline-none focus:border-[#0052FF] focus:bg-white transition-colors" 
+                    />
                   </div>
                   
                   <div className="pt-2 flex items-start gap-3">
                      <input type="checkbox" defaultChecked className="mt-1 flex-shrink-0" />
                      <p className="text-xs text-slate-500 leading-relaxed">I agree to the Terms & Conditions and Privacy Policy.</p>
                   </div>
+                  {error && <p className="text-red-500 text-xs mt-2 font-medium bg-red-50 p-3 rounded-xl border border-red-100">{error}</p>}
                 </div>
 
                 <motion.button 
                   whileTap={{ scale: 0.98 }}
-                  onClick={() => setStep('bvn')}
-                  className="w-full bg-[#0052FF] text-white font-semibold py-4 rounded-2xl mt-auto pt-4 shadow-sm hover:bg-blue-700 transition-all"
+                  disabled={isLoading}
+                  onClick={handleSignUp}
+                  className="w-full bg-[#0052FF] text-white font-semibold py-4 rounded-2xl mt-auto shadow-sm hover:bg-blue-700 transition-all disabled:bg-blue-300 flex items-center justify-center gap-2"
                 >
-                  Continue
+                  {isLoading ? <Loader2 className="animate-spin" size={20} /> : 'Continue'}
                 </motion.button>
               </motion.div>
             )}
@@ -272,24 +488,48 @@ export function AuthFlow({ onComplete }: { onComplete: () => void }) {
                 <div className="space-y-4 flex-1">
                   <div className="relative">
                     <Mail className="absolute left-4 top-4 text-slate-400" size={20} />
-                    <input type="email" placeholder="Email Address" defaultValue="goodluck@gmail.com" className="w-full pl-12 pr-4 py-3.5 bg-slate-50 border border-slate-200 rounded-2xl outline-none focus:border-[#0052FF] focus:bg-white transition-colors" />
+                    <input 
+                      type="email" 
+                      placeholder="Email Address" 
+                      value={formData.email}
+                      onChange={(e) => setFormData({...formData, email: e.target.value})}
+                      className="w-full pl-12 pr-4 py-3.5 bg-slate-50 border border-slate-200 rounded-2xl outline-none focus:border-[#0052FF] focus:bg-white transition-colors" 
+                    />
                   </div>
                   <div className="relative">
                     <Lock className="absolute left-4 top-4 text-slate-400" size={20} />
-                    <input type="password" placeholder="Password" defaultValue="••••••••" className="w-full pl-12 pr-4 py-3.5 bg-slate-50 border border-slate-200 rounded-2xl outline-none focus:border-[#0052FF] focus:bg-white transition-colors" />
+                    <input 
+                      type="password" 
+                      placeholder="Password" 
+                      value={formData.password}
+                      onChange={(e) => setFormData({...formData, password: e.target.value})}
+                      className="w-full pl-12 pr-4 py-3.5 bg-slate-50 border border-slate-200 rounded-2xl outline-none focus:border-[#0052FF] focus:bg-white transition-colors" 
+                    />
                   </div>
                   <div className="flex justify-end">
                     <button className="text-[#0052FF] text-sm font-semibold">Forgot Password?</button>
                   </div>
+                  {error && <p className="text-red-500 text-xs mt-2 font-medium bg-red-50 p-3 rounded-xl border border-red-100">{error}</p>}
                 </div>
 
-                <motion.button 
-                  whileTap={{ scale: 0.98 }}
-                  onClick={onComplete}
-                  className="w-full bg-[#0052FF] text-white font-semibold py-4 rounded-2xl mt-auto shadow-sm hover:bg-blue-700"
-                >
-                  Log In
-                </motion.button>
+                <div className="mt-auto space-y-3">
+                  <motion.button 
+                    whileTap={{ scale: 0.98 }}
+                    disabled={isLoading}
+                    onClick={handleLogin}
+                    className="w-full bg-[#0052FF] text-white font-semibold py-4 rounded-2xl shadow-sm hover:bg-blue-700 disabled:bg-blue-300 flex items-center justify-center gap-2"
+                  >
+                    {isLoading ? <Loader2 className="animate-spin" size={20} /> : 'Log In'}
+                  </motion.button>
+                  
+                  <button 
+                    onClick={handleDemoLogin}
+                    disabled={isLoading}
+                    className="w-full bg-slate-50 text-slate-600 font-semibold py-4 rounded-2xl border border-dashed border-slate-300 hover:bg-slate-100 transition-colors flex items-center justify-center gap-2"
+                  >
+                    Login as Demo User
+                  </button>
+                </div>
               </motion.div>
             )}
 
@@ -311,9 +551,17 @@ export function AuthFlow({ onComplete }: { onComplete: () => void }) {
                   <div>
                     <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2 block">Enter BVN</label>
                     <div className="relative">
-                      <input type="text" placeholder="•••• •••• ••••" className="w-full pl-4 pr-12 py-4 bg-slate-50 border border-slate-200 rounded-2xl outline-none focus:border-[#0052FF] focus:bg-white transition-colors text-lg tracking-[0.2em] font-medium" />
+                      <input 
+                        type="text" 
+                        placeholder="•••• •••• ••••" 
+                        maxLength={11}
+                        value={formData.bvn}
+                        onChange={(e) => setFormData({...formData, bvn: e.target.value.replace(/\D/g, '')})}
+                        className="w-full pl-4 pr-12 py-4 bg-slate-50 border border-slate-200 rounded-2xl outline-none focus:border-[#0052FF] focus:bg-white transition-colors text-lg tracking-[0.2em] font-medium" 
+                      />
                       <ShieldCheck className="absolute right-4 top-4 text-slate-400" size={24} />
                     </div>
+                    {error && <p className="text-red-500 text-xs mt-2 font-medium">{error}</p>}
                   </div>
 
                   <div className="bg-[#F8FAFC] p-4 rounded-2xl mt-6 border border-slate-100">
@@ -327,10 +575,15 @@ export function AuthFlow({ onComplete }: { onComplete: () => void }) {
 
                 <motion.button 
                   whileTap={{ scale: 0.98 }}
-                  onClick={() => setStep('success')}
-                  className="w-full bg-[#0052FF] text-white font-semibold py-4 rounded-2xl mt-auto shadow-sm hover:bg-blue-700"
+                  disabled={isLoading}
+                  onClick={handleVerifyBvn}
+                  className="w-full bg-[#0052FF] text-white font-semibold py-4 rounded-2xl mt-auto shadow-sm hover:bg-blue-700 disabled:bg-blue-300 flex items-center justify-center gap-2"
                 >
-                  Verify BVN
+                  {isLoading ? (
+                    <><Loader2 className="animate-spin" size={20} /> Verifying...</>
+                  ) : (
+                    'Verify BVN'
+                  )}
                 </motion.button>
               </motion.div>
             )}

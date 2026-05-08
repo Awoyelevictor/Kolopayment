@@ -1,9 +1,22 @@
 import { User, CreditCard, Shield, Bell, HelpCircle, Info, LogOut, ChevronRight, Edit2 } from 'lucide-react';
 import { motion } from 'motion/react';
 import { useNavigation } from '../../contexts/NavigationContext';
+import { useFirebase } from '../../context/FirebaseContext';
+import { auth } from '../../lib/firebase';
+import { signOut } from 'firebase/auth';
 
 export function ProfileSettings() {
   const { navigate } = useNavigation();
+  const { userProfile, user } = useFirebase();
+
+  const handleLogout = async () => {
+    try {
+      await signOut(auth);
+      // AppAuthGate will handle redirecting to AuthFlow
+    } catch (error) {
+      console.error("Logout error:", error);
+    }
+  };
 
   const menuItems = [
     { id: 'profile', icon: <User size={20} />, label: 'Personal Information', action: () => navigate('edit-profile') },
@@ -22,17 +35,19 @@ export function ProfileSettings() {
       <div className="bg-white rounded-3xl p-6 border border-slate-100 shadow-sm flex items-center justify-between mb-8">
         <div className="flex items-center gap-4">
           <div className="relative">
-            <div className="h-16 w-16 bg-slate-100 rounded-full flex items-center justify-center text-2xl font-bold text-slate-600 shadow-inner">
-              GE
+            <div className="h-16 w-16 bg-[#0052FF]/10 rounded-full flex items-center justify-center text-2xl font-bold text-[#0052FF] shadow-inner">
+              {userProfile?.firstName?.[0]}{userProfile?.lastName?.[0]}
             </div>
             <button className="absolute -bottom-1 -right-1 bg-[#0052FF] text-white p-1.5 rounded-full border-2 border-white shadow-sm">
               <Edit2 size={12} />
             </button>
           </div>
           <div>
-            <h2 className="font-bold text-lg text-slate-900 leading-tight mb-0.5">Goodluck E.</h2>
-            <p className="text-xs font-medium text-slate-500 mb-0.5">+234 901 234 5678</p>
-            <p className="text-xs text-slate-400">goodluck@gmail.com</p>
+            <h2 className="font-bold text-lg text-slate-900 leading-tight mb-0.5">
+              {userProfile?.firstName} {userProfile?.lastName}
+            </h2>
+            <p className="text-xs font-medium text-slate-500 mb-0.5">{userProfile?.phone}</p>
+            <p className="text-xs text-slate-400">{user?.email}</p>
           </div>
         </div>
       </div>
@@ -61,6 +76,7 @@ export function ProfileSettings() {
 
       <motion.button
         whileTap={{ scale: 0.98 }}
+        onClick={handleLogout}
         className="w-full flex items-center justify-center gap-2 p-5 bg-red-50 text-red-600 rounded-2xl font-semibold text-sm hover:bg-red-100 transition-colors"
       >
         <LogOut size={18} />

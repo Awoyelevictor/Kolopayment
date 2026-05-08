@@ -1,17 +1,64 @@
-import { ArrowLeft, Settings } from 'lucide-react';
+import { ArrowLeft, Settings, Loader2 } from 'lucide-react';
 import { motion } from 'motion/react';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigation } from '../../contexts/NavigationContext';
 import { OverviewTab } from './tabs/OverviewTab';
 import { MembersTab } from './tabs/MembersTab';
 import { PaymentsTab } from './tabs/PaymentsTab';
 import { ActivityTab } from './tabs/ActivityTab';
+import { db } from '../../lib/firebase';
+import { doc, onSnapshot } from 'firebase/firestore';
 
 export function GroupDetails() {
-  const { navigate } = useNavigation();
+  const { navigate, params } = useNavigation();
+  const groupId = params?.groupId;
+  const [group, setGroup] = useState<any>(null);
+  const [isLoading, setIsLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<'Overview' | 'Members' | 'Payments' | 'Activity'>('Overview');
 
+  useEffect(() => {
+    if (!groupId) {
+      setIsLoading(false);
+      return;
+    }
+
+    const unsubscribe = onSnapshot(doc(db, 'groups', groupId), (snapshot) => {
+      if (snapshot.exists()) {
+        setGroup({ id: snapshot.id, ...snapshot.data() });
+      } else {
+        console.error("Group not found");
+      }
+      setIsLoading(false);
+    }, (error) => {
+      console.error("Group fetch error:", error);
+      setIsLoading(false);
+    });
+
+    return () => unsubscribe();
+  }, [groupId]);
+
   const tabs = ['Overview', 'Members', 'Payments', 'Activity'] as const;
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-[#F8FAFC] flex flex-col items-center justify-center">
+        <Loader2 className="animate-spin text-[#0052FF]" size={48} />
+        <p className="mt-4 text-slate-500 font-medium tracking-tight">Fetching group details...</p>
+      </div>
+    );
+  }
+
+  if (!group) {
+    return (
+      <div className="min-h-screen bg-[#F8FAFC] flex flex-col items-center justify-center p-6 text-center">
+        <h2 className="text-xl font-bold text-slate-900 mb-2">Group Not Found</h2>
+        <p className="text-slate-500 mb-6 font-medium">The group you're looking for doesn't exist or has been deleted.</p>
+        <button onClick={() => navigate('groups')} className="bg-[#0052FF] text-white px-8 py-3 rounded-2xl font-bold">
+          Go Back to Groups
+        </button>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-[#F8FAFC] pb-24 xl:pb-0">
@@ -28,11 +75,11 @@ export function GroupDetails() {
 
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-bold tracking-tight text-slate-900 mb-1">CS Dept Ajo</h1>
-            <p className="text-xs font-medium text-slate-500">Group ID: #674532 <span className="inline-block ml-1 opacity-50 cursor-pointer hover:opacity-100">📋</span></p>
+            <h1 className="text-2xl font-bold tracking-tight text-slate-900 mb-1">{group.name}</h1>
+            <p className="text-xs font-medium text-slate-500">Group ID: #{group.id?.substring(0, 6).toUpperCase()} <span className="inline-block ml-1 opacity-50 cursor-pointer hover:opacity-100" onClick={() => navigator.clipboard.writeText(group.joinCode)}>📋</span></p>
           </div>
-          <div className="bg-[#22C55E]/10 text-[#22C55E] px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wide">
-            Ongoing
+          <div className={`px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wide ${group.status === 'active' ? 'bg-[#22C55E]/10 text-[#22C55E]' : 'bg-slate-100 text-slate-500'}`}>
+            {group.status}
           </div>
         </div>
 
@@ -40,15 +87,15 @@ export function GroupDetails() {
         <div className="grid grid-cols-3 gap-4 mt-6">
           <div>
             <p className="text-[10px] uppercase tracking-wider text-slate-500 font-semibold mb-1">Target</p>
-            <p className="font-bold text-slate-900">₦50,000</p>
+            <p className="font-bold text-slate-900">₦{(group.amount * group.maxMembers).toLocaleString()}</p>
           </div>
           <div>
             <p className="text-[10px] uppercase tracking-wider text-slate-500 font-semibold mb-1">Contribution</p>
-            <p className="font-bold text-slate-900">₦5,000 <span className="text-xs font-medium text-slate-500 block">Weekly</span></p>
+            <p className="font-bold text-slate-900">₦{group.amount.toLocaleString()} <span className="text-xs font-medium text-slate-500 block capitalize">{group.cycle}</span></p>
           </div>
           <div>
             <p className="text-[10px] uppercase tracking-wider text-slate-500 font-semibold mb-1">Members</p>
-            <p className="font-bold text-slate-900">10 / 10</p>
+            <p className="font-bold text-slate-900">8 / {group.maxMembers}</p>
           </div>
         </div>
       </div>
@@ -79,10 +126,10 @@ export function GroupDetails() {
            animate={{ opacity: 1, y: 0 }}
            transition={{ duration: 0.2 }}
         >
-          {activeTab === 'Overview' && <OverviewTab />}
-          {activeTab === 'Members' && <MembersTab />}
-          {activeTab === 'Payments' && <PaymentsTab />}
-          {activeTab === 'Activity' && <ActivityTab />}
+          {activeTab === 'Overview' && <OverviewTab group={group} />}
+          {activeTab === 'Members' && <MembersTab group={group} />}
+          {activeTab === 'Payments' && <PaymentsTab group={group} />}
+          {activeTab === 'Activity' && <ActivityTab group={group} />}
         </motion.div>
       </div>
     </div>

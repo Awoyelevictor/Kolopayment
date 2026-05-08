@@ -1,11 +1,38 @@
-import { ArrowLeft, Bell, BellRing, CheckCircle2, ShieldAlert, Users, XCircle } from 'lucide-react';
+import { ArrowLeft, Bell, BellRing, CheckCircle2, ShieldAlert, Users, XCircle, Loader2 } from 'lucide-react';
 import { motion } from 'motion/react';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigation } from '../../contexts/NavigationContext';
+import { useFirebase } from '../../context/FirebaseContext';
+import { collection, query, where, orderBy, onSnapshot } from 'firebase/firestore';
+import { db } from '../../lib/firebase';
 
 export function NotificationsList() {
   const { navigate } = useNavigation();
+  const { user } = useFirebase();
   const [activeTab, setActiveTab] = useState<'all' | 'payments' | 'groups' | 'system'>('all');
+  const [notifications, setNotifications] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    if (!user) return;
+
+    const q = query(
+      collection(db, 'notifications'),
+      where('userId', '==', user.uid),
+      orderBy('createdAt', 'desc')
+    );
+
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      const n = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      setNotifications(n);
+      setIsLoading(false);
+    }, (error) => {
+      console.error("Notifications fetch error:", error);
+      setIsLoading(false);
+    });
+
+    return () => unsubscribe();
+  }, [user]);
 
   const tabs = [
     { id: 'all', label: 'All' },
@@ -13,72 +40,6 @@ export function NotificationsList() {
     { id: 'groups', label: 'Groups' },
     { id: 'system', label: 'System' },
   ] as const;
-
-  const notifications = [
-    { 
-      id: 1, 
-      category: 'payments', 
-      type: 'success', 
-      title: 'Payment successful', 
-      desc: 'You paid ₦5,000 to CS Dept Ajo', 
-      time: '10:30 AM', 
-      read: false 
-    },
-    { 
-      id: 2, 
-      category: 'payments', 
-      type: 'warning', 
-      title: 'Payment reminder', 
-      desc: 'Week 2 payment due tomorrow', 
-      time: 'Yesterday', 
-      read: true 
-    },
-    { 
-      id: 3, 
-      category: 'payments', 
-      type: 'error', 
-      title: 'John O. missed a payment', 
-      desc: 'Week 1 payment is overdue', 
-      time: 'May 20', 
-      read: true 
-    },
-    { 
-      id: 4, 
-      category: 'groups', 
-      type: 'info', 
-      title: 'You were added to CS Dept Ajo', 
-      desc: 'By Sarah A.', 
-      time: 'May 18', 
-      read: true 
-    },
-    { 
-      id: 5, 
-      category: 'groups', 
-      type: 'info', 
-      title: 'Mary U. joined the group', 
-      desc: 'CS Dept Ajo', 
-      time: 'May 16', 
-      read: true 
-    },
-    { 
-      id: 6, 
-      category: 'system', 
-      type: 'success', 
-      title: 'Account verified successfully', 
-      desc: 'Your BVN has been verified', 
-      time: 'May 15', 
-      read: true 
-    },
-    { 
-      id: 7, 
-      category: 'system', 
-      type: 'warning', 
-      title: 'Security alert', 
-      desc: 'New login detected on your account', 
-      time: 'May 14', 
-      read: true 
-    },
-  ];
 
   const filteredNotifs = activeTab === 'all' 
     ? notifications 
@@ -101,6 +62,14 @@ export function NotificationsList() {
     if (type === 'error') return 'bg-red-50 border-white';
     return 'bg-slate-100 border-white';
   };
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-[#F8FAFC] flex flex-col items-center justify-center">
+        <Loader2 className="animate-spin text-[#0052FF]" size={40} />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-[#F8FAFC] pb-24 xl:pb-0">
@@ -150,9 +119,11 @@ export function NotificationsList() {
                   <div className="flex-1 min-w-0">
                     <div className="flex items-start justify-between mb-0.5">
                       <h3 className={`font-semibold text-sm truncate pr-2 ${!notif.read ? 'text-slate-900' : 'text-slate-700'}`}>{notif.title}</h3>
-                      <span className="text-xs text-slate-400 font-medium whitespace-nowrap">{notif.time}</span>
+                      <span className="text-xs text-slate-400 font-medium whitespace-nowrap">
+                        {notif.createdAt?.toDate?.()?.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) || 'Now'}
+                      </span>
                     </div>
-                    <p className="text-sm text-slate-500">{notif.desc}</p>
+                    <p className="text-sm text-slate-500">{notif.desc || notif.message}</p>
                   </div>
                   {!notif.read && (
                     <div className="h-2.5 w-2.5 rounded-full bg-[#0052FF] mt-2 flex-shrink-0 shadow-sm shadow-blue-500/30" />
@@ -166,12 +137,6 @@ export function NotificationsList() {
             )}
           </div>
         </div>
-
-        {filteredNotifs.length > 0 && (
-          <button className="w-full text-center text-[#0052FF] font-semibold text-sm hover:underline p-2">
-            View all notifications
-          </button>
-        )}
       </div>
     </div>
   );

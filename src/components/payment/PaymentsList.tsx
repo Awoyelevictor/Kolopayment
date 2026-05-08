@@ -1,18 +1,46 @@
-import { ArrowUpRight, ArrowDownLeft, Calendar, Search } from 'lucide-react';
+import { ArrowUpRight, ArrowDownLeft, Calendar, Search, Loader2 } from 'lucide-react';
 import { motion } from 'motion/react';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigation } from '../../contexts/NavigationContext';
+import { useFirebase } from '../../context/FirebaseContext';
+import { collection, query, where, orderBy, onSnapshot } from 'firebase/firestore';
+import { db } from '../../lib/firebase';
 
 export function PaymentsList() {
   const { navigate } = useNavigation();
+  const { user } = useFirebase();
   const [activeTab, setActiveTab] = useState<'upcoming' | 'completed'>('completed');
+  const [transactions, setTransactions] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
-  const transactions = [
-    { id: 1, type: 'sent', group: 'CS Dept Ajo', amount: '₦5,000', date: '20 May, 2024', status: 'success' },
-    { id: 2, type: 'received', group: 'NYSC Squad', amount: '₦20,000', date: '18 May, 2024', status: 'success' },
-    { id: 3, type: 'sent', group: 'CS Dept Ajo', amount: '₦5,000', date: '13 May, 2024', status: 'success' },
-    { id: 4, type: 'sent', group: 'NYSC Squad', amount: '₦2,000', date: '11 May, 2024', status: 'failed' },
-  ];
+  useEffect(() => {
+    if (!user) return;
+
+    const q = query(
+      collection(db, 'transactions'),
+      where('userId', '==', user.uid),
+      orderBy('timestamp', 'desc')
+    );
+
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      const t = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      setTransactions(t);
+      setIsLoading(false);
+    }, (error) => {
+      console.error("Transactions fetch error:", error);
+      setIsLoading(false);
+    });
+
+    return () => unsubscribe();
+  }, [user]);
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-[#F8FAFC] flex flex-col items-center justify-center">
+        <Loader2 className="animate-spin text-[#0052FF]" size={40} />
+      </div>
+    );
+  }
 
   return (
     <div className="px-6 pt-10 pb-24 w-full max-w-lg mx-auto">
@@ -55,45 +83,36 @@ export function PaymentsList() {
             className="bg-white p-4 rounded-2xl border border-slate-100 shadow-sm flex items-center justify-between"
           >
             <div className="flex items-center gap-4">
-              <div className={`h-12 w-12 rounded-full flex items-center justify-center ${t.type === 'sent' ? 'bg-orange-50 text-orange-500' : 'bg-[#22C55E]/10 text-[#22C55E]'}`}>
-                {t.type === 'sent' ? <ArrowUpRight size={24} /> : <ArrowDownLeft size={24} />}
+              <div className={`h-12 w-12 rounded-full flex items-center justify-center ${t.type === 'contribution' ? 'bg-orange-50 text-orange-500' : 'bg-[#22C55E]/10 text-[#22C55E]'}`}>
+                {t.type === 'contribution' ? <ArrowUpRight size={24} /> : <ArrowDownLeft size={24} />}
               </div>
               <div>
-                <h3 className="font-semibold text-slate-900 text-sm mb-0.5">{t.group}</h3>
+                <h3 className="font-semibold text-slate-900 text-sm mb-0.5">{t.description || (t.type === 'topup' ? 'Wallet Topup' : 'Contribution')}</h3>
                 <p className="text-xs text-slate-500 font-medium flex items-center gap-1">
-                  <Calendar size={12} /> {t.date}
+                  <Calendar size={12} /> {t.timestamp?.toDate?.()?.toLocaleDateString() || 'Today'}
                 </p>
               </div>
             </div>
             <div className="text-right">
-              <span className={`font-bold block ${t.type === 'sent' ? 'text-slate-900' : 'text-[#22C55E]'}`}>
-                {t.type === 'sent' ? '-' : '+'}{t.amount}
+              <span className={`font-bold block ${t.type === 'contribution' ? 'text-slate-900' : 'text-[#22C55E]'}`}>
+                {t.type === 'contribution' ? '-' : '+'}₦{t.amount?.toLocaleString()}
               </span>
-              <span className={`text-[10px] font-bold uppercase tracking-wider ${t.status === 'success' ? 'text-[#22C55E]' : 'text-red-500'}`}>
+              <span className={`text-[10px] font-bold uppercase tracking-wider ${t.status === 'completed' || t.status === 'success' ? 'text-[#22C55E]' : 'text-yellow-500'}`}>
                 {t.status}
               </span>
             </div>
           </motion.div>
         ))}
 
+        {activeTab === 'completed' && transactions.length === 0 && (
+          <div className="py-20 text-center">
+            <p className="text-slate-400 font-medium">No transactions yet</p>
+          </div>
+        )}
+
         {activeTab === 'upcoming' && (
-          <div className="bg-white p-5 rounded-3xl border border-slate-100 shadow-sm mb-4">
-            <div className="flex justify-between items-start mb-4">
-              <div>
-                <h3 className="font-semibold text-slate-900 mb-1">CS Dept Ajo</h3>
-                <p className="text-xs font-medium text-slate-500">Due in 2 days • 24 May, 2024</p>
-              </div>
-              <div className="text-right">
-                <span className="font-bold text-[#0052FF] text-lg block">₦5,000.00</span>
-              </div>
-            </div>
-            <motion.button 
-              whileTap={{ scale: 0.98 }}
-              onClick={() => navigate('payment-flow', { groupId: 'g1' })}
-              className="w-full mt-2 bg-[#0052FF]/10 text-[#0052FF] font-semibold py-3.5 rounded-2xl hover:bg-[#0052FF]/15 transition-colors"
-            >
-              Pay Now
-            </motion.button>
+          <div className="py-20 text-center">
+            <p className="text-slate-400 font-medium">No upcoming payments</p>
           </div>
         )}
       </div>

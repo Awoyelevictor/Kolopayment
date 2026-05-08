@@ -1,0 +1,100 @@
+{
+  "entities": {
+    "User": {
+      "title": "User Profile",
+      "description": "Stored in users/{userId}",
+      "type": "object",
+      "properties": {
+        "firstName": { "type": "string" },
+        "lastName": { "type": "string" },
+        "email": { "type": "string" },
+        "phone": { "type": "string" },
+        "bvn": { "type": "string" },
+        "isVerified": { "type": "boolean" },
+        "walletBalance": { "type": "number" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["firstName", "lastName", "email", "walletBalance"]
+    },
+    "Group": {
+      "title": "Ajo Group",
+      "description": "Stored in groups/{groupId}",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string" },
+        "description": { "type": "string" },
+        "amount": { "type": "number" },
+        "cycle": { "type": "string", "enum": ["weekly", "monthly"] },
+        "maxMembers": { "type": "number" },
+        "adminId": { "type": "string" },
+        "status": { "type": "string", "enum": ["draft", "active", "completed"] },
+        "joinCode": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["name", "amount", "cycle", "adminId", "status"]
+    },
+    "Member": {
+      "title": "Group Member",
+      "description": "Stored in groups/{groupId}/members/{userId}",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "joinedAt": { "type": "string", "format": "date-time" },
+        "payoutPosition": { "type": "number" },
+        "hasPaid": { "type": "boolean" }
+      },
+      "required": ["userId", "joinedAt"]
+    },
+    "Transaction": {
+      "title": "Financial Transaction",
+      "description": "Stored in transactions/{transactionId}",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "groupId": { "type": "string" },
+        "amount": { "type": "number" },
+        "type": { "type": "string", "enum": ["topup", "contribution", "payout"] },
+        "status": { "type": "string", "enum": ["pending", "success", "failed"] },
+        "payazaReference": { "type": "string" },
+        "timestamp": { "type": "string", "format": "date-time" }
+      },
+      "required": ["userId", "amount", "type", "status", "timestamp"]
+    },
+    "Notification": {
+      "title": "User Notification",
+      "description": "Stored in notifications/{notificationId}",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "title": { "type": "string" },
+        "message": { "type": "string" },
+        "read": { "type": "boolean" },
+        "timestamp": { "type": "string", "format": "date-time" }
+      },
+      "required": ["userId", "title", "message", "read", "timestamp"]
+    }
+  },
+  "firestore": {
+    "users/{userId}": {
+      "schema": "User",
+      "description": "User profiles"
+    },
+    "groups/{groupId}": {
+      "schema": "Group",
+      "description": "Ajo groups"
+    },
+    "groups/{groupId}/members/{userId}": {
+      "schema": "Member",
+      "description": "Members of an ajo group"
+    },
+    "transactions/{transactionId}": {
+      "schema": "Transaction",
+      "description": "Global transactions log"
+    },
+    "notifications/{notificationId}": {
+      "schema": "Notification",
+      "description": "User specific notifications"
+    }
+  }
+}
