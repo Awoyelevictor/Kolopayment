@@ -13,29 +13,41 @@ export function GroupsList() {
   const [activeTab, setActiveTab] = useState<'active' | 'completed'>('active');
   const [groups, setGroups] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [debugInfo, setDebugInfo] = useState<string>('');
 
   useEffect(() => {
-    if (!user) return;
+    if (!user) {
+      setDebugInfo('No balanced user found');
+      return;
+    }
 
+    setDebugInfo(`Fetching memberships for ${user.uid}...`);
     const q = query(
       collection(db, 'users', user.uid, 'memberships')
     );
 
     const unsubscribe = onSnapshot(q, (snapshot) => {
-      const g = snapshot.docs.map(doc => ({ id: doc.data().groupId, ...doc.data() }));
+      const g = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      console.log("Fetched groups:", g);
       setGroups(g);
       setIsLoading(false);
+      setDebugInfo(`Found ${snapshot.size} groups`);
     }, (error) => {
       console.error("Memberships fetch error:", error);
       setIsLoading(false);
+      setDebugInfo(`Error: ${error.message}`);
     });
 
     return () => unsubscribe();
   }, [user]);
 
-  const filteredGroups = groups.filter(g => 
-    activeTab === 'active' ? g.status === 'active' : g.status === 'completed'
-  );
+  const filteredGroups = groups.filter(g => {
+    const status = g.status || 'active'; // Default to active for backward compatibility
+    return activeTab === 'active' ? status === 'active' : status === 'completed';
+  });
+
+  const activeCount = groups.filter(g => (g.status || 'active') === 'active').length;
+  const completedCount = groups.filter(g => g.status === 'completed').length;
 
   return (
     <div className="px-6 pt-10 pb-12 w-full max-w-lg mx-auto">
@@ -52,7 +64,7 @@ export function GroupsList() {
           onClick={() => setActiveTab('active')}
           className={`pb-3 font-medium text-sm transition-colors relative z-10 ${activeTab === 'active' ? 'text-[#0052FF]' : 'text-slate-500'}`}
         >
-          Active (2)
+          Active ({activeCount})
           {activeTab === 'active' && (
             <motion.div layoutId="groupTabUnderline" className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#0052FF] rounded-t-full" />
           )}
@@ -61,7 +73,7 @@ export function GroupsList() {
           onClick={() => setActiveTab('completed')}
           className={`pb-3 font-medium text-sm transition-colors relative z-10 ${activeTab === 'completed' ? 'text-[#0052FF]' : 'text-slate-500'}`}
         >
-          Completed (3)
+          Completed ({completedCount})
           {activeTab === 'completed' && (
             <motion.div layoutId="groupTabUnderline" className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#0052FF] rounded-t-full" />
           )}

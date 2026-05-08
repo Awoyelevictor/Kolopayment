@@ -60,6 +60,7 @@ export function JoinGroupModal() {
           name: data.name,
           amount: data.amount,
           cycle: data.cycle,
+          status: 'active',
           maxMembers: data.maxMembers,
           joinedAt: serverTimestamp()
         });

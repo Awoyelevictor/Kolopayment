@@ -53,6 +53,7 @@ export function CreateGroupFlow() {
         name: formData.name,
         amount: formData.amount,
         cycle: formData.cycle,
+        status: 'active',
         maxMembers: formData.maxMembers,
         joinedAt: serverTimestamp()
       });

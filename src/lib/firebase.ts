@@ -68,7 +68,22 @@ export function handleFirestoreError(error: unknown, operationType: OperationTyp
   };
 
   try {
-    const stringified = JSON.stringify(errInfo);
+    // Basic safety check for errInfo properties before stringifying
+    const stringified = JSON.stringify({
+      error: errInfo.error,
+      operationType: errInfo.operationType,
+      path: errInfo.path,
+      authInfo: {
+        userId: errInfo.authInfo.userId,
+        email: errInfo.authInfo.email,
+        emailVerified: errInfo.authInfo.emailVerified,
+        isAnonymous: errInfo.authInfo.isAnonymous,
+        tenantId: errInfo.authInfo.tenantId,
+        providerInfo: Array.isArray(errInfo.authInfo.providerInfo) 
+          ? errInfo.authInfo.providerInfo.map(p => ({ providerId: p.providerId, email: p.email }))
+          : []
+      }
+    });
     console.error('Firestore Error: ', stringified);
     throw new Error(stringified);
   } catch (jsonError) {

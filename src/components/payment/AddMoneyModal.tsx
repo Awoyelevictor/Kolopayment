@@ -42,29 +42,21 @@ export function AddMoneyModal({ isOpen, onClose }: AddMoneyModalProps) {
         phone_number: userProfile.phone || '08000000000'
       });
       
-      // Map Payaza response (assuming standard format)
-      if (response.data) {
+      // Map Payaza v2 / Pro response
+      if (response && (response.data || response.account_number)) {
+        const data = response.data || response;
         setVirtualAccount({
-          accountName: response.data.account_name,
-          accountNumber: response.data.account_number,
-          bankName: response.data.bank_name || 'Payaza Bank'
+          accountName: data.account_name || data.accountName || 'KOLOPAY/USER',
+          accountNumber: data.account_number || data.accountNumber,
+          bankName: data.bank_name || data.bankName || 'Payaza Bank'
         });
       } else {
-        // Mock for fallback if API fails
-        setVirtualAccount({
-          accountName: 'KOLOPAY/GOODLUCK E.',
-          accountNumber: '0123456789',
-          bankName: 'Wema Bank'
-        });
+        throw new Error(response?.message || 'Failed to generate Payaza virtual account');
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Virtual Account Error:', error);
-      // Fallback for hackathon
-      setVirtualAccount({
-        accountName: 'KOLOPAY/GOODLUCK E.',
-        accountNumber: '0123456789',
-        bankName: 'Wema Bank'
-      });
+      alert(error.message || 'Failed to generate Payaza virtual account. Please check your Payaza configuration.');
+      setView('options');
     } finally {
       setIsLoading(false);
     }

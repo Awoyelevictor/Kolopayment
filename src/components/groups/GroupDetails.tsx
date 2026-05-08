@@ -7,17 +7,20 @@ import { MembersTab } from './tabs/MembersTab';
 import { PaymentsTab } from './tabs/PaymentsTab';
 import { ActivityTab } from './tabs/ActivityTab';
 import { db } from '../../lib/firebase';
-import { doc, onSnapshot } from 'firebase/firestore';
+import { doc, onSnapshot, collection } from 'firebase/firestore';
 
 export function GroupDetails() {
-  const { navigate, params } = useNavigation();
-  const groupId = params?.groupId;
+  const { navigate, activeGroupId } = useNavigation();
+  const groupId = activeGroupId;
   const [group, setGroup] = useState<any>(null);
+  const [memberCount, setMemberCount] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<'Overview' | 'Members' | 'Payments' | 'Activity'>('Overview');
 
   useEffect(() => {
+    console.log("GroupDetails mounted with groupId:", groupId);
     if (!groupId) {
+      console.warn("No groupId provided to GroupDetails");
       setIsLoading(false);
       return;
     }
@@ -34,7 +37,14 @@ export function GroupDetails() {
       setIsLoading(false);
     });
 
-    return () => unsubscribe();
+    const membersUnsubscribe = onSnapshot(collection(db, 'groups', groupId, 'members'), (snapshot) => {
+      setMemberCount(snapshot.size);
+    });
+
+    return () => {
+      unsubscribe();
+      membersUnsubscribe();
+    };
   }, [groupId]);
 
   const tabs = ['Overview', 'Members', 'Payments', 'Activity'] as const;
@@ -95,7 +105,7 @@ export function GroupDetails() {
           </div>
           <div>
             <p className="text-[10px] uppercase tracking-wider text-slate-500 font-semibold mb-1">Members</p>
-            <p className="font-bold text-slate-900">8 / {group.maxMembers}</p>
+            <p className="font-bold text-slate-900">{memberCount} / {group.maxMembers}</p>
           </div>
         </div>
       </div>

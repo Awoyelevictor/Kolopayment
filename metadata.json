@@ -1,6 +1,6 @@
 {
-  "name": "",
-  "description": "",
+  "name": "KoloPay",
+  "description": "A modern Ajo (social savings) and group contribution platform with automated payments and secure wallet features powered by Payaza.",
   "requestFramePermissions": [],
   "majorCapabilities": []
 }

@@ -28,11 +28,12 @@ export function HomeDashboard() {
     );
 
     const unsubscribeGroups = onSnapshot(groupsQuery, (snapshot) => {
-      const groups = snapshot.docs.map(doc => ({ id: doc.data().groupId, ...doc.data() }));
+      const groups = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data(), groupId: doc.data().groupId || doc.id }));
+      console.log("HomeDashboard fetched memberships:", groups);
       setActiveGroups(groups);
       setIsLoading(false);
     }, (error) => {
-      console.error("Memberships fetch error:", error);
+      console.error("HomeDashboard memberships fetch error:", error);
       setIsLoading(false);
     });
 
